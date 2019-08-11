@@ -1,4 +1,5 @@
 
+
   
   
 # about
@@ -24,8 +25,12 @@ a chrome extension to quickly download any media from instagram.com.
 
 ### to use direct download to disk, do additionally:
 
-- make sure python2.7 is installed, e.g with `python --version` from the terminal.
-download and install it from [https://www.python.org/downloads/release/python-2716/](https://www.python.org/downloads/release/python-2716/) if necessary.
+- check if python2.7 is installed, e.g with `python --version` from the terminal.
+	download and install it from [https://www.python.org/downloads/release/python-2716/]	(https://www.python.org/downloads/release/python-2716/) if necessary. 
+- install the python module "requests"
+	- on linux: `pip2.7 install requests`
+	- on windows, locate the folder where Python2.7 is installed,
+	navigate to the Scripts folder within, then run `pip2.7 install requests`
 
 - go to the "/host/windows" - or "/host/linux_mac" folder in the downloaded repository, 
 depending on your operating system.  
