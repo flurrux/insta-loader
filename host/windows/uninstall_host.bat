@@ -3,5 +3,5 @@
 :: found in the LICENSE file.
 
 :: Deletes the entry created by install_host.bat
-REG DELETE "HKCU\Software\Google\Chrome\NativeMessagingHosts\insta_loader" /f
-REG DELETE "HKLM\Software\Google\Chrome\NativeMessagingHosts\insta_loader" /f
+REG DELETE "HKCU\Software\Google\Chrome\NativeMessagingHosts\insta_loader_host" /f
+REG DELETE "HKLM\Software\Google\Chrome\NativeMessagingHosts\insta_loader_host" /f
