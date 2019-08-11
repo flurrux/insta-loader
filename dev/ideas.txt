@@ -1,0 +1,58 @@
+
+todo ###
+
+- rewrite the whole thing with lit-html/lit-element and modules
+- shortcut for disk-download
+- show if an image is already saved
+- button to open folder of model
+- button to jump to saved image
+- show download queue in the corner and how many where sucessfull/failed.
+maybe just showing the queue and how many failed is enough. also persist the failed links 
+so they are shown again after reload. when there are multiple windows of instagram, there should 
+be only one queue-instance.
+- progress-bar on profile-page when scrolling down
+- download entire profile - button
+- download entire story - button
+- story mode: always pause at start - option, pause when downloading - option
+- story mode: open tagged persons in new tab
+- auto-download mode where every post/story is downloaded automatically as long as chrome is running
+- automatic testing if everything still works, make a page where every step is visible and described in detail,
+for example show a feed and pick a random item, then detect the button-bar and highlight it
+- sort stories by relevance
+- profile page: sometimes there are too many pictures to download in one sitting,
+so remember the last seen post and continue later.
+- options: enable prompt download, enable native download, only show icons on hover
+- include posts of public profiles that you are not following in the feed (to prevent getting banned)
+- create a new view for fast story watching. maybe it could look like a grid with about 20 items in the 
+viewport and i can quickly decide which ones i want to download. it could have like rows where each row
+is the story of a person.
+- automatic expansion of collections
+
+
+bugs: ###
+
+- scrolling of story-bar is now janky, maybe because of the mutation-observers for
+persistence and navigation
+- multiple download-progresses interfere with each other, they are not distinguished 
+because of the window.postMessage
+- bug: when dark-reader is enabled, the download-icons are not visible, except the success one
+- bug: in a collection when an item is downloaded, the success icon appears, then the next-arrow 
+is clicked and the next slide is shown which might not be downloaded, but the success icon remains.
+this happens because the icons are not updated when another slide is shown.
+- issue: instagram profiles can change their name and still be the same url. in that case, 
+there can be two download-folders for the same profile. is this good or bad behaviour?
+- instagram bug: if you click on the next-button on a collection, the indicator sometimes get stuck on the second last one
+and the download index depends on that element.
+- bug: loading sign stays until i click it again, then suddenly it works
+
+done ###
+
+- download mode: 
+simple (just save to folder 'Downloads') (Y)
+tidy, look for a folder with the name of the model and save the file there, needs feedback if saving was successful (Y)
+
+- feedback if saving was successfull (Y)
+- in cases where the media source is retrieved by ajax, only execute the ajax if the button is actually pressed (Y)
+- advanced options for folder-names, exceptions for tricking and stuff (Y)
+- show progress of download (Y)
+- when story is closed, scroll to the last scroll-position (Y)

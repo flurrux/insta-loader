@@ -1,0 +1,5 @@
+- don't use the print- function in the python script, it messes with the stdio
+- in the manifest, an allowed_origin must have a trailing slash, like:
+"chrome-extension://ibbhlbcdnfejhiobajmdbepmnmoifgab/", 
+not "chrome-extension://ibbhlbcdnfejhiobajmdbepmnmoifgab"
+- python scripts must have execute-permission, this can be done via "chmod a+rx [script_path]"

@@ -1,0 +1,43 @@
+<html>
+
+<head>
+
+<style>
+    canvas {
+
+        border: 1px solid black;
+    }
+</style>
+
+</head>
+<body>
+
+<img src="29740826_591224474558624_3478242048773980160_n.jpg"/>
+<canvas width="600" height="400"></canvas>
+
+<script>
+
+    let iconPath = "../icons/download icon black.png";
+    let iconImg = document.createElement("img");
+    function onIconLoaded(){
+
+        console.log("loaded");
+    }
+    iconImg.addEventListener("load", onIconLoaded);
+
+    let canvas = document.querySelector("canvas");
+    let ctx = canvas.getContext("2d");
+    let backgroundImg = document.querySelector("img");
+    function onBackgroundLoaded(){
+
+        ctx.drawImage(backgroundImg, 0, 0);
+        let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        console.log(imageData);
+    }
+    backgroundImg.addEventListener("load", onBackgroundLoaded);
+
+</script>
+
+</body>
+
+</html>

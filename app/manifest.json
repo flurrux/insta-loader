@@ -1,0 +1,48 @@
+{
+	"manifest_version": 2,
+
+	"name": "InstaLoader",
+	"description": "download buttons for instagram media.",
+	"version": "1.1",
+
+	"icons": { 
+		"16": "icons/instaloader icon 16.png",
+		"48": "icons/instaloader icon 48.png",
+		"128": "icons/instaloader icon 128.png" 
+	},
+
+	"background": {
+		"scripts": ["src/disk-writing/disk-download-background.js"],
+		"persistent": true
+	},
+
+	"content_scripts": [
+		{
+			"matches": ["*://www.instagram.com/*"],
+			"js": [
+				"lib/extension-url-exposing.js", 
+				"src/content.js", 
+				"src/disk-writing/write-path-manager.js", 
+				"src/disk-writing/disk-download.js"
+			]
+		}
+	],
+
+	"permissions": [
+		"storage",
+		"nativeMessaging",
+		"tabs",
+		"*://www.instagram.com/*",
+		"https: //unpkg.com/lit-html?module"
+	],
+
+	"options_ui": {
+		"page": "src/options/options.html",
+		"chrome_style": true
+	},
+
+	"web_accessible_resources": [
+		"icons/*.png",
+		"src/*", "lib/*"
+	]
+}

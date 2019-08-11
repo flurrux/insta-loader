@@ -1,0 +1,7 @@
+{
+  "name": "insta_loader_host",
+  "description": "host for filesystem operations",
+  "path": "",
+  "type": "stdio",
+  "allowed_origins": []
+}

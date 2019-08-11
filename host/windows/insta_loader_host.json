@@ -1,0 +1,7 @@
+{
+  "name": "insta_loader_host",
+  "description": "host for filesystem operations",
+  "path": "insta_loader_host_starter.bat",
+  "type": "stdio",
+  "allowed_origins": []
+}
