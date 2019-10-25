@@ -247,35 +247,19 @@ export const getMediaInfo = (url, callback) => {
 
 		let responseText = this.responseText;
 
-		let dataObject;
-		{
-			let dataStartString = "_sharedData = ";
-			let startIndex = responseText.indexOf(dataStartString);
-			if (startIndex < 0){
+		const graphQlRegex = /(?<=window\.__additionalDataLoaded\(.*',).*(?=\);<)/;
+		const dataText = graphQlRegex.exec(responseText);
+		if (!dataText){
+			throw 'could not find instagram data in response.';
+		};
 
-				throw 'sharedData could not be found. maybe instagram changed the name?';
-			}
-
-			let endIndex = responseText.indexOf(";</script>", startIndex);
-			if (endIndex < 0){
-
-				throw 'sharedData is not closed with a semicolon or is outside of a script tag.';
-			}
-
-			let dataText = responseText.substring(startIndex + dataStartString.length, endIndex);
-			
-			//let timeBefore = window.performance.now();
-			dataObject = JSON.parse(dataText);
-			//let duration = window.performance.now() - timeBefore;
-			//console.log("parse duration: " + duration);
-			//about 1 millisecond when i tested
-		}
+		const dataObject = JSON.parse(dataText[0]);
 		
 		let postType = "unknown";
 		let mediaArray = [];
 		let username = "unknown";
 		{
-			let postInfo = dataObject.entry_data.PostPage[0].graphql.shortcode_media;
+			let postInfo = dataObject.graphql.shortcode_media;
 			let subMedia;
 
 			if (postInfo.edge_sidecar_to_children !== undefined){
