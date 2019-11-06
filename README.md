@@ -5,7 +5,7 @@
 # about
 a chrome extension to quickly download any media from instagram.com.
 
-
+![download directly into folder](https://github.com/flurrux/insta-loader/blob/master/insta-loader-demo-1.gif)
 
 
 # install
