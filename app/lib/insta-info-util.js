@@ -238,6 +238,12 @@ function extractInstaHandleFromXml(xml){
 	*/
 }
 
+// interface MediaInfo {
+// 	username: string,
+// 	postType: "collection" | "video" | "image",
+// 	mediaArray: { type: "video", src: string, previewSrc: string }[] | 
+	// { type: "image", srcset: string, previewSrc: string }[]
+// }
 export const getMediaInfo = (url, callback) => {
 
 	const request = new XMLHttpRequest();
@@ -400,6 +406,46 @@ export const getUsernameOfStory = () => {
 
 export const getPostMediaElement = (postElement) => {
 	return postElement.querySelector("video, img[srcset]");
+};
+
+const getUsernameByPostElement = (postElement) => {
+	const profileLink = postElement.querySelector("header a").href;
+	const usernameRegex = /(?<=\.com\/).*(?=\/)/;
+	const regexResult = usernameRegex.exec(profileLink);
+	return regexResult.length === 0 ? undefined : regexResult[0];
+};
+const getPostTypeByPostElement = (postElement) => {
+	//first test for collection
+	if (postElement.querySelector("ul img[srcset], ul video") !== null){
+		return "collection";
+	}
+	const mediaElement = getPostMediaElement(postElement);
+	return mediaElement.tagName === "VIDEO" ? "video" : "image";
+};
+const extractMediaFromElement = (mediaElement) => {
+	const type = mediaElement.tagName === "VIDEO" ? "video" : "image";
+	return {
+		type,
+		...(type === "video" ? { src: mediaElement.src } : { src: getHighestQualityFromSrcset(mediaElement.srcset) })
+	}
+};
+const getCollectionMediaByPostElement = (postElement) => {
+	const list = postElement.querySelector("ul");
+	const scrollEl = list.parentElement.parentElement;
+	const scrollAmount = parseFloat(getComputedStyle(scrollEl).getPropertyValue("transform").replace("matrix(", "").replace(")", "").split(", ")[4]);
+	const listItemWidth = parseFloat(getComputedStyle(list.children[0]).getPropertyValue("width"));
+	const currentMediaIndex = Math.round(-scrollAmount / listItemWidth);
+	const mediaEl = list.children[currentMediaIndex].querySelector("img[srcset], video");
+	return extractMediaFromElement(mediaEl);
+};
+const getSingleMediaInfoByPostElement = (postElement) => extractMediaFromElement(postElement.querySelector("img[srcset], video"))
+export const getMediaInfoByHtml = (postElement) => {
+	const username = getUsernameByPostElement(postElement);
+	const postType = getPostTypeByPostElement(postElement);
+	const media = postType === "collection" ? getCollectionMediaByPostElement(postElement) : getSingleMediaInfoByPostElement(postElement);
+	return {
+		username, postType, media
+	};
 };
 
 function getStoryItemsByNavigationElement(navigationElement){

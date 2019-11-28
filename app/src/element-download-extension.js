@@ -442,7 +442,7 @@ const onPreviewAdded = (previewElement) => {
 	createBar(new PreviewBar(), previewElement);
 };
 
-instaChangeDetector.addEventListener("onPreviewAdded", e => onPreviewAdded(e.detail.element));
+//instaChangeDetector.addEventListener("onPreviewAdded", e => onPreviewAdded(e.detail.element));
 
 //post ############
 
@@ -485,37 +485,41 @@ class PostBar extends InstaLoaderBar {
 			return;
 		}
 
-		const onMediaRetrieved = (data) => {
+		const data = instaInfoUtil.getMediaInfoByHtml(postElement);
+		callback(data.media.src, data.username);
 
-			let mediaArray = data.mediaArray;
-			let mediaToDownload = null;
-			if (mediaArray.length == 1){
-				mediaToDownload = mediaArray[0];
-			}
-			else {
-				//multiple medias from collection, find the one that is currently visible
-				let mediaIndex = 0;
-				{
-					const indexIndicator = postElement.querySelector(".XCodT");
-					mediaIndex = Array.from(indexIndicator.parentElement.children).indexOf(indexIndicator);
-				}
-				mediaToDownload = mediaArray[mediaIndex];
+		// const onMediaRetrieved = (data) => {
 
-				//legacy, instagram used to load the collection element dynamically,
-				//so we had to get the media by matching the preview-src
-				//mediaToDownload = mediaArray.find(entry => entry.previewSrc == previewSrc);
-			}
+		// 	let mediaArray = data.mediaArray;
+		// 	let mediaToDownload = null;
+		// 	if (mediaArray.length == 1){
+		// 		mediaToDownload = mediaArray[0];
+		// 	}
+		// 	else {
+		// 		//multiple medias from collection, find the one that is currently visible
+		// 		let mediaIndex = 0;
+		// 		{
+		// 			const indexIndicator = postElement.querySelector(".XCodT");
+		// 			mediaIndex = Array.from(indexIndicator.parentElement.children).indexOf(indexIndicator);
+		// 		}
+		// 		mediaToDownload = mediaArray[mediaIndex];
 
-			if (mediaToDownload == null){
-				return;
-			}
+		// 		//legacy, instagram used to load the collection element dynamically,
+		// 		//so we had to get the media by matching the preview-src
+		// 		//mediaToDownload = mediaArray.find(entry => entry.previewSrc == previewSrc);
+		// 	}
 
-			let src = getAppropMediaSrc(mediaToDownload);
-			let username = data.username;
-			callback(src, username);
-		}
-		
-		instaInfoUtil.getMediaInfo(postHref, onMediaRetrieved);
+		// 	if (mediaToDownload == null){
+		// 		return;
+		// 	}
+
+		// 	let src = getAppropMediaSrc(mediaToDownload);
+		// 	let username = data.username;
+		// 	callback(src, username);
+		// }
+		// instaInfoUtil.getMediaInfo(postHref, onMediaRetrieved);
+
+
 	};
 
 	appendToInsta(instaElement){
