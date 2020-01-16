@@ -454,7 +454,6 @@ class PostBar extends InstaLoaderBar {
 		
 		let container = document.createElement("div");
 		container.style.flexDirection = "row";
-		container.style.marginLeft = "auto";
 
 		this.container = container;
 	}
@@ -531,8 +530,8 @@ class PostBar extends InstaLoaderBar {
 			console.warn("save-sprite not found");
 			return;
 		}
-		// Object.assign(saveSprite.parentElement.parentElement.style, {})
 		let savePostEl = saveSprite.parentElement.parentElement;
+		savePostEl.style.marginRight = "0px";
 		savePostEl.parentElement.insertAdjacentElement("beforeend", this.container);
 	}
 
