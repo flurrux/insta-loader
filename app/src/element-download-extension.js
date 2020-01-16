@@ -460,7 +460,8 @@ class PostBar extends InstaLoaderBar {
 	}
 
 	findSaveElement(){
-		return this.instaElement.querySelector(`*[class*="Save"]`);
+		// return this.instaElement.querySelector(`*[class*="Save"]`);
+		return this.instaElement.querySelector(`*[aria-label*="Save"]`);
 	}
 
 	add(obj){
@@ -527,13 +528,12 @@ class PostBar extends InstaLoaderBar {
 		this.instaElement = instaElement;
 		let saveSprite = this.findSaveElement();
 		if (saveSprite == null){
-
 			console.warn("save-sprite not found");
 			return;
 		}
-		let savePostButton = saveSprite.parentElement;
-		savePostButton.style.marginLeft = "0px";
-		savePostButton.insertAdjacentElement("beforebegin", this.container);
+		// Object.assign(saveSprite.parentElement.parentElement.style, {})
+		let savePostEl = saveSprite.parentElement.parentElement;
+		savePostEl.parentElement.insertAdjacentElement("beforeend", this.container);
 	}
 
 	getChildrenContainer(){
