@@ -436,13 +436,11 @@ class PreviewBar extends InstaLoaderBar {
 		return this.overlayContainer;
 	}
 }
-
 const onPreviewAdded = (previewElement) => {
 
 	createBar(new PreviewBar(), previewElement);
 };
-
-//instaChangeDetector.addEventListener("onPreviewAdded", e => onPreviewAdded(e.detail.element));
+instaChangeDetector.addEventListener("onPreviewAdded", e => onPreviewAdded(e.detail.element));
 
 //post ############
 
