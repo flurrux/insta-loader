@@ -117,9 +117,11 @@ class InstaLoaderBar {
 	getElement(){}
 }
 
-class InstaButton {
+class InstaButton extends EventTarget {
 
-	constructor(){}
+	constructor(){
+		super();
+	}
 
 	setStyle(size, padding, margin){}
 }
@@ -295,6 +297,9 @@ class DiskDownloadButton extends InstaDownloadButton {
 	}
 	setState(nextState){
 
+		if (nextState !== this.currentState){
+			this.dispatchEvent(new CustomEvent("download-state-changed", { detail: { state: nextState } }));
+		}
 		const state = this.currentState = nextState;
 
 		this._handleSpinner();
@@ -366,6 +371,10 @@ const createBar = (bar, instaElement) => {
 
 	let diskButton = new DiskDownloadButton();
 	bar.add(diskButton);
+	diskButton.addEventListener("download-state-changed", e => {
+		if (!bar.diskDownloadStateChanged) return;
+		bar.diskDownloadStateChanged(e.detail.state);
+	});
 };
 
 //preview ########
@@ -458,9 +467,7 @@ class PostBar extends InstaLoaderBar {
 
 	findSaveElement(){
 		// return this.instaElement.querySelector(`*[class*="Save"]`);
-		const parent = this.instaElement;
-		return parent.querySelector(`*[aria-label*="Save"]`) || 
-			parent.querySelector(`*[aria-label*="Remove"]`);
+		return this.instaElement.querySelector(`*[aria-label*="Save"]`);
 	}
 
 	add(obj){
@@ -485,40 +492,41 @@ class PostBar extends InstaLoaderBar {
 			return;
 		}
 
-		// const data = instaInfoUtil.getMediaInfoByHtml(postElement);
-		// callback(data.media.src, data.username);
+		const data = instaInfoUtil.getMediaInfoByHtml(postElement);
+		callback(data.media.src, data.username);
+
+		// const onMediaRetrieved = (data) => {
+
+		// 	let mediaArray = data.mediaArray;
+		// 	let mediaToDownload = null;
+		// 	if (mediaArray.length == 1){
+		// 		mediaToDownload = mediaArray[0];
+		// 	}
+		// 	else {
+		// 		//multiple medias from collection, find the one that is currently visible
+		// 		let mediaIndex = 0;
+		// 		{
+		// 			const indexIndicator = postElement.querySelector(".XCodT");
+		// 			mediaIndex = Array.from(indexIndicator.parentElement.children).indexOf(indexIndicator);
+		// 		}
+		// 		mediaToDownload = mediaArray[mediaIndex];
+
+		// 		//legacy, instagram used to load the collection element dynamically,
+		// 		//so we had to get the media by matching the preview-src
+		// 		//mediaToDownload = mediaArray.find(entry => entry.previewSrc == previewSrc);
+		// 	}
+
+		// 	if (mediaToDownload == null){
+		// 		return;
+		// 	}
+
+		// 	let src = getAppropMediaSrc(mediaToDownload);
+		// 	let username = data.username;
+		// 	callback(src, username);
+		// }
+		// instaInfoUtil.getMediaInfo(postHref, onMediaRetrieved);
 
 
-		const onMediaRetrieved = (data) => {
-
-			let mediaArray = data.mediaArray;
-			let mediaToDownload = null;
-			if (mediaArray.length == 1){
-				mediaToDownload = mediaArray[0];
-			}
-			else {
-				//multiple medias from collection, find the one that is currently visible
-				let mediaIndex = 0;
-				{
-					const indexIndicator = postElement.querySelector(".XCodT");
-					mediaIndex = Array.from(indexIndicator.parentElement.children).indexOf(indexIndicator);
-				}
-				mediaToDownload = mediaArray[mediaIndex];
-
-				//legacy, instagram used to load the collection element dynamically,
-				//so we had to get the media by matching the preview-src
-				//mediaToDownload = mediaArray.find(entry => entry.previewSrc == previewSrc);
-			}
-
-			if (mediaToDownload == null){
-				return;
-			}
-
-			let src = getAppropMediaSrc(mediaToDownload);
-			let username = data.username;
-			callback(src, username);
-		}
-		instaInfoUtil.getMediaInfo(postHref, onMediaRetrieved);
 	};
 
 	appendToInsta(instaElement){
@@ -767,6 +775,17 @@ class StoryBar extends InstaLoaderBar {
 	getChildrenContainer(){
 
 		return this.container;
+	}
+
+	diskDownloadStateChanged(newState){
+		const video = document.querySelector("video");
+		if (!video) return;
+		if (newState === "loading"){
+			video.pause();
+		}
+		else if (newState === "success"){
+			video.play();
+		}
 	}
 }
 
