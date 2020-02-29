@@ -783,8 +783,12 @@ class StoryBar extends InstaLoaderBar {
 		if (!video) return;
 		if (newState === "loading"){
 			video.pause();
+			const keepPaused = () => video.pause();
+			video.addEventListener("play", keepPaused);
+			this._keepPaused = keepPaused;
 		}
 		else if (newState === "success"){
+			video.removeEventListener("play", this._keepPaused);
 			video.play();
 		}
 	}
