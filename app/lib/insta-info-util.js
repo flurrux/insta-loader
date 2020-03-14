@@ -433,13 +433,20 @@ const getCollectionMediaByPostElement = (postElement) => {
 	const list = postElement.querySelector("ul");
 	//the actual first item at index 0 is some kind of marker with width 1
 	const firstItem = list.children[1];
-	const scrollEl = list.parentElement;
-	const positionReferenceElement = scrollEl.parentElement;
-	const scrollAmount = positionReferenceElement.getBoundingClientRect().x - scrollEl.getBoundingClientRect().x;
 	const listItemWidth = parseFloat(getComputedStyle(firstItem).getPropertyValue("width"));
-	const currentMediaIndex = Math.round(scrollAmount / listItemWidth) + 1;
-	const mediaEl = list.children[currentMediaIndex].querySelector("img[srcset], video");
-	return extractMediaFromElement(mediaEl);
+	const positionReferenceElement = list.parentElement.parentElement;
+	const visibleX = positionReferenceElement.getBoundingClientRect().x;
+
+	for (let i = 1; i < list.children.length; i++){
+		const listItem = list.children[i];
+		const curItemX = listItem.getBoundingClientRect().x;
+		if (Math.abs(visibleX - curItemX) < listItemWidth / 2){
+			const mediaEl = listItem.querySelector("img[srcset], video");
+			return extractMediaFromElement(mediaEl);
+		}
+	}
+
+	return;
 };
 const getSingleMediaInfoByPostElement = (postElement) => extractMediaFromElement(postElement.querySelector("img[srcset], video"))
 export const getMediaInfoByHtml = (postElement) => {
