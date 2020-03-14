@@ -431,10 +431,13 @@ const extractMediaFromElement = (mediaElement) => {
 };
 const getCollectionMediaByPostElement = (postElement) => {
 	const list = postElement.querySelector("ul");
-	const scrollEl = list.parentElement.parentElement;
-	const scrollAmount = parseFloat(getComputedStyle(scrollEl).getPropertyValue("transform").replace("matrix(", "").replace(")", "").split(", ")[4]);
-	const listItemWidth = parseFloat(getComputedStyle(list.children[0]).getPropertyValue("width"));
-	const currentMediaIndex = Math.round(-scrollAmount / listItemWidth);
+	//the actual first item at index 0 is some kind of marker with width 1
+	const firstItem = list.children[1];
+	const scrollEl = list.parentElement;
+	const positionReferenceElement = scrollEl.parentElement;
+	const scrollAmount = positionReferenceElement.getBoundingClientRect().x - scrollEl.getBoundingClientRect().x;
+	const listItemWidth = parseFloat(getComputedStyle(firstItem).getPropertyValue("width"));
+	const currentMediaIndex = Math.round(scrollAmount / listItemWidth) + 1;
 	const mediaEl = list.children[currentMediaIndex].querySelector("img[srcset], video");
 	return extractMediaFromElement(mediaEl);
 };
