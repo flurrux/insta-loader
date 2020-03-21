@@ -41,8 +41,3 @@ chrome.runtime.onConnect.addListener(function (port) {
 		});
 	});
 });
-
-// chrome.runtime.onMessage.addListener((request, sender, responseFunc) => {
-//     connectToNativeHost(request, sender, responseFunc);
-//     return true;
-// });

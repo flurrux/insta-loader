@@ -12,8 +12,11 @@
 	},
 
 	"background": {
-		"scripts": ["src/disk-writing/disk-download-background.js"],
-		"persistent": true
+		"scripts": [
+			"src/disk-writing/disk-download-background.js",
+			"src/notifications-background.js"
+		],
+		"persistent": false
 	},
 
 	"content_scripts": [

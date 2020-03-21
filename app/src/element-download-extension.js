@@ -5,6 +5,12 @@ import instaChangeDetector from '../lib/insta-change-detection.js';
 import * as instaInfoUtil from '../lib/insta-info-util.js';
 import getWriteFolderPath from './disk-writing/request-write-path.js';
 
+const wait = (millis) => {
+	return new Promise((resolve, reject) => {
+		window.setTimeout(resolve, millis);
+	});
+};
+
 const getFilenameForUrl = (url) => {
 
 	const endings = [".mp4", ".jpg"];
@@ -91,11 +97,9 @@ const findAnySpriteByText = (startNode, innerTexts) => {
 
 class InstaLoaderBar {
 
-	constructor(){
+	constructor(){}
 
-	}
-
-	getMediaSrc(callback){}
+	getMediaSrc(){}
 
 	addToInsta(instaElement){
 
@@ -145,9 +149,8 @@ class InstaDownloadButton extends InstaButton {
 		this.buttonImg = buttonImg;
 	}
 
-	getMediaSrc(callback){
-
-		this.instaBar.getMediaSrc(callback);
+	getMediaSrc(){
+		return this.instaBar.getMediaSrc();
 	}
 
 	//onValidMediaRetrieved(mediaSrc){}
@@ -219,13 +222,13 @@ class PromptDownloadButton extends InstaDownloadButton {
 	}
 
 	promptDownload(){
-		this.getMediaSrc(mediaSrc => {
-			if (mediaSrc == null){
-				console.error("no media found");
-				return;
-			}
-			downloadResource(mediaSrc, getFilenameForUrl(mediaSrc));
-		});
+		this.getMediaSrc()
+			.then(data => {
+				downloadResource(data.src, getFilenameForUrl(data.src));
+			})
+			.catch(error => {
+				console.error(error);
+			});
 	}
 
 	onClick(){
@@ -318,47 +321,64 @@ class DiskDownloadButton extends InstaDownloadButton {
 
 	getNextState(answer){
 		if (answer.origin === "native host disconnect") {
-			console.error(answer.data);
-			return "fail";
+			return { state: "fail", error: answer.data };
 		}
 		else if (answer.origin === "native host response") {
 			const resultEntry = answer.data[0];
 			const resultEntryType = resultEntry.type;
 			if (resultEntryType === "success") {
-				return "success";
+				return { state: "success" };
 			}
 			else if (resultEntryType === "error") {
-				console.error(resultEntry.data);
-				return "fail";
+				return { state: "fail", error: resultEntry.data };
 			}
 		}
-		return "loading";
-	}
-
-	onDiskDownloadReturn(answer){
-		const nextState = this.getNextState(answer);
-		if (nextState === "loading"){
-			this._loadingProgress = answer.data[0].data.progress;
-		}
-		this.setState(nextState);
+		return { state: "loading" };
 	}
 
 	async storeOnDisk(mediaSrc, username){
 		const ownUsername = instaInfoUtil.getOwnUsername();
 		const folderPath = await getWriteFolderPath({ mediaSrc, username, ownUsername });
 		const fileName = getFilenameForUrl(mediaSrc);
-		storeOnDisk({ mediaSrc, folderPath, fileName }, (answer) => this.onDiskDownloadReturn(answer));
+		return new Promise((resolve, reject) => {
+			storeOnDisk({ mediaSrc, folderPath, fileName }, (answer) => {
+				const nextStateData = this.getNextState(answer);
+				const nextState = nextStateData.state;
+				if (nextState === "loading") {
+					this._loadingProgress = answer.data[0].data.progress;
+					this.setState("loading");
+				}
+				else if (nextState === "success") {
+					this.setState("success");
+					resolve();
+				}
+				else if (nextState === "fail"){
+					this.setState("fail");
+					reject(nextStateData.error);
+				}
+			});
+		});
+	}
+
+	_onError(error){
+		console.error(error);
+		this.setState("fail");
+		chrome.runtime.sendMessage("nlbkkdknaklpmlpcifpbgoamdopmhkbh", {
+			type: "notification",
+			title: "instagram download failed",
+			message: error
+		});
 	}
 
 	onClick(){
 		this.setState("loading");
-		this.getMediaSrc((src, username) => {
-			if (src == null){
-				this.setState("fail");
-				return;
-			}
-			this.storeOnDisk(src, username);
-		});
+		this.getMediaSrc()
+			.then(data => {
+				return this.storeOnDisk(data.src, data.username);
+			})
+			.catch(error => {
+				this._onError(error);
+			});
 	}
 }
 
@@ -405,29 +425,21 @@ class PreviewBar extends InstaLoaderBar {
 		obj.setStyle(size, padding, "0px");
 	}
 
-	getMediaSrc(callback){
-
+	getMediaSrc(){
 		let linkElement = this.instaElement.querySelector("a");
 		if (linkElement == null){
-
-			console.warn("instagram may have changed this element");
-			callback(null);
-			return;
+			return Promise.reject("link-element not found");
 		}
 		let postHref = linkElement.href;
 
-		instaInfoUtil.getMediaInfo(postHref, (data) => {
-			if (data.mediaArray.length == 0){
-				console.warn("no media could be found. is this a page that contains media?");
-				callback(null);
-				return;
-			}
-
-			let mediaObj = data.mediaArray[0];
-			let src = getAppropMediaSrc(mediaObj);
-			let username = data.username;
-			callback(src, username);
-		});
+		return instaInfoUtil
+			.getMediaInfo(postHref)
+			.then(data => {
+				let mediaObj = data.mediaArray[0];
+				let src = getAppropMediaSrc(mediaObj);
+				let username = data.username;
+				return { username, src };
+			}); 
 	}
 
 	appendToInsta(instaElement){
@@ -483,51 +495,17 @@ class PostBar extends InstaLoaderBar {
 		obj.setStyle(size, padding, "0px");
 	}
 
-	getMediaSrc(callback){
-
+	getMediaSrc(){
 		let postElement = this.instaElement;
-		let postHref = instaInfoUtil.getHrefOfPost(postElement);
 		let previewSrc = instaInfoUtil.getPreviewSrcOfPost(postElement);
 		if (previewSrc == null){
-			callback(null);
-			return;
+			return Promise.reject("preview-src not found");
 		}
-
 		const data = instaInfoUtil.getMediaInfoByHtml(postElement);
-		callback(data.media.src, data.username);
-
-		// const onMediaRetrieved = (data) => {
-
-		// 	let mediaArray = data.mediaArray;
-		// 	let mediaToDownload = null;
-		// 	if (mediaArray.length == 1){
-		// 		mediaToDownload = mediaArray[0];
-		// 	}
-		// 	else {
-		// 		//multiple medias from collection, find the one that is currently visible
-		// 		let mediaIndex = 0;
-		// 		{
-		// 			const indexIndicator = postElement.querySelector(".XCodT");
-		// 			mediaIndex = Array.from(indexIndicator.parentElement.children).indexOf(indexIndicator);
-		// 		}
-		// 		mediaToDownload = mediaArray[mediaIndex];
-
-		// 		//legacy, instagram used to load the collection element dynamically,
-		// 		//so we had to get the media by matching the preview-src
-		// 		//mediaToDownload = mediaArray.find(entry => entry.previewSrc == previewSrc);
-		// 	}
-
-		// 	if (mediaToDownload == null){
-		// 		return;
-		// 	}
-
-		// 	let src = getAppropMediaSrc(mediaToDownload);
-		// 	let username = data.username;
-		// 	callback(src, username);
-		// }
-		// instaInfoUtil.getMediaInfo(postHref, onMediaRetrieved);
-
-
+		return Promise.resolve({ 
+			username: data.username, 
+			src: data.media.src 
+		});
 	};
 
 	appendToInsta(instaElement){
@@ -753,11 +731,10 @@ class StoryBar extends InstaLoaderBar {
 		obj.setStyle(size, "0px", margin);
 	}
 
-	getMediaSrc(callback){
-
+	getMediaSrc(){
 		let src = instaInfoUtil.getSrcOfStory(this.instaElement);
 		let username = instaInfoUtil.getUsernameOfStory(this.instaElement);
-		callback(src, username);
+		return Promise.resolve({ src, username });
 	}
 
 	appendToInsta(instaElement){

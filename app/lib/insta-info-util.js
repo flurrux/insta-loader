@@ -244,97 +244,97 @@ function extractInstaHandleFromXml(xml){
 // 	mediaArray: { type: "video", src: string, previewSrc: string }[] | 
 	// { type: "image", srcset: string, previewSrc: string }[]
 // }
-export const getMediaInfo = (url, callback) => {
-
-	const request = new XMLHttpRequest();
-
-	console.log(url);
-	function transferComplete(){
-
-		let responseText = this.responseText;
-
-		const graphQlRegex = /(?<=window\.__additionalDataLoaded\(.*',).*(?=\);<)/;
-		const dataText = graphQlRegex.exec(responseText);
-		if (!dataText){
-			throw 'could not find instagram data in response.';
-		};
-
-		const dataObject = JSON.parse(dataText[0]);
-		
-		let postType = "unknown";
-		let mediaArray = [];
-		let username = "unknown";
-		{
-			let postInfo = dataObject.graphql.shortcode_media;
-			let subMedia;
-
-			if (postInfo.edge_sidecar_to_children !== undefined){
-
-				postType = "collection";
-				subMedia = (postInfo.edge_sidecar_to_children.edges).map(el => el.node);
+export const getMediaInfo = (url) => {
+	return new Promise((resolve, reject) => {
+		const request = new XMLHttpRequest();
+	
+		function transferComplete(){
+	
+			let responseText = this.responseText;
+	
+			const graphQlRegex = /(?<=window\.__additionalDataLoaded\(.*',).*(?=\);<)/;
+			const dataText = graphQlRegex.exec(responseText);
+			if (!dataText){
+				reject('could not find instagram data in response.');
+			};
+			
+			let dataObject = null;
+			try {
+				dataObject = JSON.parse(dataText[0]);
 			}
-			else { 
-				
-				subMedia = [postInfo];
-				if (postInfo.video_url !== undefined){
-
-					postType = "video";
+			catch(e){
+				reject(e);
+			}
+			
+			let postType = "unknown";
+			let mediaArray = [];
+			let username = "unknown";
+			{
+				if (!dataObject.graphql) reject("graphql not found");
+				if (!dataObject.graphql.shortcode_media) reject("shortcode_media not found");
+				let postInfo = dataObject.graphql.shortcode_media;
+				let subMedia;
+	
+				if (postInfo.edge_sidecar_to_children !== undefined){
+	
+					postType = "collection";
+					subMedia = (postInfo.edge_sidecar_to_children.edges).map(el => el.node);
 				}
-				else {
-
-					postType = "image";
+				else { 
+					
+					subMedia = [postInfo];
+					if (postInfo.video_url !== undefined){
+	
+						postType = "video";
+					}
+					else {
+	
+						postType = "image";
+					}
 				}
+	
+				mediaArray = new Array(subMedia.length);
+				for (let a = 0; a < subMedia.length; a++){
+	
+					let subMed = subMedia[a];
+					let subObj = {};
+					if (subMed.video_url !== undefined){
+	
+						subObj.type = "video";
+						subObj.src = subMed.video_url;
+					}
+					else {
+	
+						subObj.type = "image";
+						subObj.srcset = subMed.display_resources;
+					}
+					subObj.previewSrc = subMed.display_url;
+					mediaArray[a] = subObj;
+				}
+	
+				username = postInfo.owner.username;
+			}
+	
+			if (mediaArray.length === 0){
+				reject("no media found");
 			}
 
-			mediaArray = new Array(subMedia.length);
-			for (let a = 0; a < subMedia.length; a++){
-
-				let subMed = subMedia[a];
-				let subObj = {};
-				if (subMed.video_url !== undefined){
-
-					subObj.type = "video";
-					subObj.src = subMed.video_url;
-				}
-				else {
-
-					subObj.type = "image";
-					subObj.srcset = subMed.display_resources;
-				}
-				subObj.previewSrc = subMed.display_url;
-				mediaArray[a] = subObj;
-			}
-
-			username = postInfo.owner.username;
+			let data = {
+				postType: postType,
+				mediaArray: mediaArray,
+				username: username
+			};
+			
+			resolve(data);
 		}
-
-		let data = {
-			postType: postType,
-			mediaArray: mediaArray,
-			username: username
-		};
-
-		//console.log(responseText);
-
-		callback(data);
-	}
-
-	function transferCanceled(){
-
-		callback(null);
-	}
-
-	function transferFailed(){
-
-		callback(null);
-	}
-
-	request.addEventListener("load", transferComplete);
-	request.addEventListener("error", transferFailed);
-	request.addEventListener("abort", transferCanceled);
-
-	request.open("GET", url);
-	request.send();
+	
+		request.addEventListener("load", transferComplete);
+		request.addEventListener("error", reject);
+		request.addEventListener("abort", reject);
+	
+		request.open("GET", url);
+		request.send();
+	});
 };
 
 export const getPreviewSrcOfPost = (postElement) => {
