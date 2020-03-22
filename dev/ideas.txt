@@ -2,6 +2,7 @@
 todo ###
 
 - rewrite the whole thing with lit-html/lit-element and modules
+- when the language is german, then the folder is named: [username]?hl=de
 - shortcut for disk-download
 - show if an image is already saved
 - button to open folder of model
