@@ -479,8 +479,13 @@ class PostBar extends InstaLoaderBar {
 
 	findSaveElement(){
 		const parent = this.instaElement;
-		return parent.querySelector(`*[aria-label*="Save"]`) ||
-			parent.querySelector(`*[aria-label*="Remove"]`);
+		const section = parent.querySelector("section");
+		if (!section){
+			console.warn("section with buttons not found");
+			return;
+		}
+		const svgs = Array.from(section.querySelectorAll("svg"));
+		return svgs[svgs.length - 1];
 	}
 
 	add(obj){
