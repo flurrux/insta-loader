@@ -50,17 +50,15 @@ const getAppropMediaSrc = (media) => {
 
 const getResourceUrl = url => window.getInstaExtensionUrl(url);
 
-const getIconSrc = (iconAppendix) => {
-
-	return getResourceUrl(`icons/download icon ${iconAppendix}.png`);
+const getDownloadIconSrc = (iconAppendix) => {
+	return getResourceUrl(`icons/download-icon-${iconAppendix}.png`);
 };
 
 const initIconImg = (img, size, iconAppendix) => {
-
 	let sizeStyle = size + "px";
 	img.style.width = sizeStyle;
 	img.style.height = sizeStyle;
-	img.src = getIconSrc(iconAppendix);
+	img.src = getDownloadIconSrc(iconAppendix);
 };
 
 const setElementSize = (element, size) => {
@@ -217,7 +215,7 @@ class PromptDownloadButton extends InstaDownloadButton {
 			story: "white"
 		};
 		let iconAppendix = iconAppendixMap[elementType];
-		let src = getIconSrc(iconAppendix);
+		let src = getDownloadIconSrc(iconAppendix);
 		this.buttonImg.src = src;
 	}
 

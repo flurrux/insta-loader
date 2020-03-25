@@ -1,14 +1,14 @@
 {
 	"manifest_version": 2,
 
-	"name": "InstaLoader",
+	"name": "insta-loader",
 	"description": "download buttons for instagram media.",
 	"version": "1.1",
 
 	"icons": { 
-		"16": "icons/instaloader icon 16.png",
-		"48": "icons/instaloader icon 48.png",
-		"128": "icons/instaloader icon 128.png" 
+		"16": "icons/insta-loader-icon-16.png",
+		"48": "icons/insta-loader-icon-48.png",
+		"128": "icons/insta-loader-icon-128.png" 
 	},
 
 	"background": {

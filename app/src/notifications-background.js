@@ -6,6 +6,6 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
 		type: "basic",
 		title: msg.title,
 		message: msg.message,
-		iconUrl: "icons/instaloader icon 48.png"
+		iconUrl: "icons/insta-loader-icon-48.png"
 	});
 });
