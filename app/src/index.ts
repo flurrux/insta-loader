@@ -1,3 +1,3 @@
-import './element-download-extension.js';
-// import './story-scroll-persistence.js';
-// import './linkify-stories.js';
+import './element-download-extension';
+// import './story-scroll-persistence';
+// import './linkify-stories';

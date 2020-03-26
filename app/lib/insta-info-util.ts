@@ -1,37 +1,38 @@
-import { pageType, getCurrentPageType } from '../src/insta-navigation-observer.js';
+import { pageType, getCurrentPageType } from '../src/insta-navigation-observer';
 
-export const elementType = {
-	preview: "preview",
-	post: "post",
-	story: "story"
-};
+export type InstaElementType = "preview" | "post" | "story";
 
-export const getElementTypesOnCurrentPage = () => {
-	let curPageType = getCurrentPageType();
-	if (curPageType == pageType.mainFeed || curPageType == pageType.post){
-		return [elementType.post];
+export const getElementTypesOnCurrentPage = (): InstaElementType[] => {
+	const curPageType = getCurrentPageType();
+	if (curPageType === "mainFeed" || curPageType === "post"){
+		return ["post"];
 	}
-	else if (curPageType == pageType.personFeed){
-		return [elementType.preview];
+	else if (curPageType === "personFeed"){
+		return ["preview"];
 	}
-	else if (curPageType == pageType.stories) {
-		return [elementType.story];
+	else if (curPageType === "stories") {
+		return ["story"];
 	}
 	return [];
 };
 
-const getInstaHandle = (mainElement) => {
-	return mainElement.querySelector("header").querySelector("a").getAttribute("href").split("/").join("");
+const getInstaHandle = (mainElement: HTMLElement): string => {
+	return mainElement
+		.querySelector("header")
+		.querySelector("a")
+		.getAttribute("href")
+		.split("/")
+		.join("");
 };
 
-const getMediaName = (mediaSrc) => {
-	var split = mediaSrc.split("/");
+const getMediaName = (mediaSrc: string): string => {
+	const split = mediaSrc.split("/");
 	return split[split.length - 1];
 };
 
-const getDownloadMode = (mainElement) => {
+const getDownloadMode = (mainElement: HTMLElement): "http" | "direct" => {
 	let videoElement = mainElement.querySelector("._l6uaz");
-	if (videoElement != null && videoElement.src.includes("blob")){ 
+	if (videoElement !== null && (videoElement as HTMLVideoElement).src.includes("blob")){ 
 		return "http";
 	}
 	else {
@@ -46,10 +47,8 @@ const getDownloadMode = (mainElement) => {
 //then i copy the json text and make it an object in the conse
 //now i need the path to the desired info, and use this method
 function searchInObjectSub(obj, curPath, str){
-	
 	let keys = Object.keys(obj);
 	for (let key of keys){
-	
 		let val = obj[key];
 		if (val === undefined || val == null){
 
@@ -76,9 +75,7 @@ function searchInObjectSub(obj, curPath, str){
 	}
 	return false;
 }
-
-function searchInObject(obj, str){
-
+function searchInObject(obj: object, str: string){
 	let path = [];
 	searchInObjectSub(obj, path, str);
 	path.reverse();
@@ -238,94 +235,85 @@ function extractInstaHandleFromXml(xml){
 	*/
 }
 
-// interface MediaInfo {
-// 	username: string,
-// 	postType: "collection" | "video" | "image",
-// 	mediaArray: { type: "video", src: string, previewSrc: string }[] | 
-	// { type: "image", srcset: string, previewSrc: string }[]
-// }
-export const getMediaInfo = (url) => {
+
+
+export interface VideoInfo {
+	type: "video",
+	src: string,
+	previewSrc: string
+};
+export interface ImgInfo {
+	type: "image", 
+	srcset: string,
+	previewSrc: string
+};
+export type VideoOrImgInfo = VideoInfo | ImgInfo;
+export interface MediaInfo {
+	username: string,
+	postType: "collection" | "video" | "image",
+	mediaArray: VideoOrImgInfo[]
+}
+const getMediaInfoFromResponseText = (responseText: string): MediaInfo => {
+	const dataText = /(?<=window\.__additionalDataLoaded\(.*',).*(?=\);<)/.exec(responseText);
+	if (!dataText) throw '__additionalDataLoaded not found on window';
+
+	const dataObject = JSON.parse(dataText[0]);
+
+	if (!dataObject.graphql) throw 'graphql not found';
+	if (!dataObject.graphql.shortcode_media) throw 'shortcode_media not found';
+
+	const postInfo = dataObject.graphql.shortcode_media;
+	const username: string = postInfo.owner.username;
+	
+	const [postType, subMedia] = postInfo.edge_sidecar_to_children !== undefined ? 
+		[ "collection", (postInfo.edge_sidecar_to_children.edges).map(el => el.node) ] : 
+		[ postInfo.video_url !== undefined ? "video" : "image", [postInfo] ];
+
+	const mediaArray: VideoOrImgInfo[] = [];
+	for (let a = 0; a < subMedia.length; a++) {
+		let subMed = subMedia[a];
+		let subObj: Partial<VideoOrImgInfo> = {
+			previewSrc: subMed.display_url
+		};
+
+		if (subMed.video_url !== undefined) {
+			Object.assign(subObj, {
+				type: "video",
+				src: subMed.video_url
+			} as Partial<VideoInfo>)
+		}
+		else {
+			Object.assign(subObj, {
+				type: "image",
+				srcset: subMed.display_resources
+			} as Partial<ImgInfo>)
+		}
+
+		mediaArray.push(subObj as VideoOrImgInfo);
+	}
+
+	if (mediaArray.length === 0) {
+		throw 'no media found';
+	}
+	
+	return {
+		postType,
+		mediaArray,
+		username
+	} as MediaInfo;
+};
+export const getMediaInfo = (url: string): Promise<MediaInfo> => {
 	return new Promise((resolve, reject) => {
 		const request = new XMLHttpRequest();
 	
 		function transferComplete(){
-	
-			let responseText = this.responseText;
-	
-			const graphQlRegex = /(?<=window\.__additionalDataLoaded\(.*',).*(?=\);<)/;
-			const dataText = graphQlRegex.exec(responseText);
-			if (!dataText){
-				reject('could not find instagram data in response.');
-			};
-			
-			let dataObject = null;
 			try {
-				dataObject = JSON.parse(dataText[0]);
+				const data = getMediaInfoFromResponseText(this.responseText);
+				resolve(data);
 			}
-			catch(e){
+			catch (e){
 				reject(e);
 			}
-			
-			let postType = "unknown";
-			let mediaArray = [];
-			let username = "unknown";
-			{
-				if (!dataObject.graphql) reject("graphql not found");
-				if (!dataObject.graphql.shortcode_media) reject("shortcode_media not found");
-				let postInfo = dataObject.graphql.shortcode_media;
-				let subMedia;
-	
-				if (postInfo.edge_sidecar_to_children !== undefined){
-	
-					postType = "collection";
-					subMedia = (postInfo.edge_sidecar_to_children.edges).map(el => el.node);
-				}
-				else { 
-					
-					subMedia = [postInfo];
-					if (postInfo.video_url !== undefined){
-	
-						postType = "video";
-					}
-					else {
-	
-						postType = "image";
-					}
-				}
-	
-				mediaArray = new Array(subMedia.length);
-				for (let a = 0; a < subMedia.length; a++){
-	
-					let subMed = subMedia[a];
-					let subObj = {};
-					if (subMed.video_url !== undefined){
-	
-						subObj.type = "video";
-						subObj.src = subMed.video_url;
-					}
-					else {
-	
-						subObj.type = "image";
-						subObj.srcset = subMed.display_resources;
-					}
-					subObj.previewSrc = subMed.display_url;
-					mediaArray[a] = subObj;
-				}
-	
-				username = postInfo.owner.username;
-			}
-	
-			if (mediaArray.length === 0){
-				reject("no media found");
-			}
-
-			let data = {
-				postType: postType,
-				mediaArray: mediaArray,
-				username: username
-			};
-			
-			resolve(data);
 		}
 	
 		request.addEventListener("load", transferComplete);
@@ -351,15 +339,15 @@ export const getPreviewSrcOfPost = (postElement) => {
 	return null;
 };
 
-export const getHrefOfPost = (postElement) => {
-	const linkElements = postElement.querySelectorAll('a[href*="/p/"');
-	const href = linkElements[0].href;
+export const getHrefOfPost = (postElement: HTMLElement): string => {
+	const linkElement = postElement.querySelector('a[href*="/p/"') as HTMLLinkElement;
+	const href = linkElement[0].href;
 	const startIndex = href.indexOf("/p/") + 3;
 	const endIndex = href.indexOf("/", startIndex);
 	return href.substring(0, endIndex + 1);
 };
 
-const getHighestQualityFromSrcset = (srcset) => {
+const getHighestQualityFromSrcset = (srcset: string): string => {
 	const split = srcset.split(",");
 	let highestQualiString = split[split.length - 1];
 	const endIndex = highestQualiString.indexOf(" ") + 1;
@@ -367,10 +355,9 @@ const getHighestQualityFromSrcset = (srcset) => {
 	return highestQualiString.trim();
 };
 
-export const getSrcOfStory = (storyElement) => {
+export const getSrcOfStory = (storyElement: HTMLElement): string => {
 	const video = storyElement.querySelector("video");
-	if (video != null){
-
+	if (video !== null){
 		//there seems to be several sources that have different file sizes
 		//when downloaded. i want to get the biggest file, cuz that's probably
 		//where the quality is. after some research i found out the sources use different
@@ -388,20 +375,16 @@ export const getSrcOfStory = (storyElement) => {
 		return sources[sources.length - 1].src;
 	}
 	else {
-		const img = storyElement.querySelector('img[srcset]');
-		if (img != null){
+		const img = storyElement.querySelector('img[srcset]') as HTMLImageElement;
+		if (img !== null){
 			return getHighestQualityFromSrcset(img.srcset);
 		}
 	}
-
 	return null;
 };
 
-export const getUsernameOfStory = () => {
-	const url = window.location.href;
-	const startString = "stories/";
-	const startIndex = url.indexOf(startString) + startString.length;
-	return url.substring(startIndex).replace("/", "");
+export const getUsernameByStoryUrl = (storyUrl: string): string => {
+	return /(?<=stories\/).*(?=\/)/.exec(storyUrl)[0];
 };
 
 export const getPostMediaElement = (postElement) => {
@@ -460,7 +443,7 @@ export const getMediaInfoByHtml = (postElement) => {
 
 function getStoryItemsByNavigationElement(navigationElement){
 	//$0.__reactInternalInstance$o18wyingh6h.return.return.return.stateNode.props.items
-	const keys = Reflect.ownKeys(navigationElement);
+	const keys = Reflect.ownKeys(navigationElement) as string[];
 	const reactInstanceKey = keys.find(val => val.includes("Instance"));
 	let currentReturn = navigationElement[reactInstanceKey];
 	for (let a = 0; a < 1000; a++){
@@ -474,12 +457,6 @@ function getStoryItemsByNavigationElement(navigationElement){
 	return currentReturn.stateNode.props.items;
 }
 
-export const getOwnUsername = () => {
-	const usernameMatches = document.body.innerHTML.match(new RegExp('(?<="username":")[^"]*'));
-	if (usernameMatches.length > 0){
-		return usernameMatches[0];
-	}
-	else {
-		return null;
-	}
+export const getOwnUsername = (): string => {
+	return /(?<="username":")[^"]*/.exec(document.body.innerHTML)[0];
 };

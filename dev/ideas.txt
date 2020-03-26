@@ -2,7 +2,6 @@
 todo ###
 
 - rewrite the whole thing with lit-html/lit-element and modules
-- when the language is german, then the folder is named: [username]?hl=de
 - shortcut for disk-download
 - show if an image is already saved
 - button to open folder of model
@@ -34,26 +33,9 @@ bugs: ###
 
 - scrolling of story-bar is now janky, maybe because of the mutation-observers for
 persistence and navigation
-- multiple download-progresses interfere with each other, they are not distinguished 
-because of the window.postMessage
 - bug: when dark-reader is enabled, the download-icons are not visible, except the success one
 - bug: in a collection when an item is downloaded, the success icon appears, then the next-arrow 
 is clicked and the next slide is shown which might not be downloaded, but the success icon remains.
 this happens because the icons are not updated when another slide is shown.
 - issue: instagram profiles can change their name and still be the same url. in that case, 
 there can be two download-folders for the same profile. is this good or bad behaviour?
-- instagram bug: if you click on the next-button on a collection, the indicator sometimes get stuck on the second last one
-and the download index depends on that element.
-- bug: loading sign stays until i click it again, then suddenly it works
-
-done ###
-
-- download mode: 
-simple (just save to folder 'Downloads') (Y)
-tidy, look for a folder with the name of the model and save the file there, needs feedback if saving was successful (Y)
-
-- feedback if saving was successfull (Y)
-- in cases where the media source is retrieved by ajax, only execute the ajax if the button is actually pressed (Y)
-- advanced options for folder-names, exceptions for tricking and stuff (Y)
-- show progress of download (Y)
-- when story is closed, scroll to the last scroll-position (Y)

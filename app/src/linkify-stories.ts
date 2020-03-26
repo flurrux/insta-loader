@@ -1,5 +1,6 @@
 ﻿
-const onStoryElementAdded = storyNode => {
+
+const insertLinkIntoStoryNode = (storyNode: Element) => {
 	const nameSpans = Array.from(storyNode.querySelectorAll("span")).filter(span => !span.hasAttribute("role"));
 	if (nameSpans.length > 0){
 		const nameSpan = nameSpans[0];
@@ -16,8 +17,8 @@ const onStoryElementAdded = storyNode => {
 	}
 };
 
-const getStoryElementFromCanvas = canvas => {
-	let parent = canvas;
+const getStoryElementFromCanvas = (canvas: HTMLCanvasElement): Element => {
+	let parent: Element = canvas;
 	for (let a = 0; a < 1000; a++){
 		if (parent.matches("button")){
 			return parent.parentElement;
@@ -25,18 +26,21 @@ const getStoryElementFromCanvas = canvas => {
 		parent = parent.parentElement;
 	}
 };
+
 const observer = new MutationObserver(mutations => {
 	for (const mutation of mutations){
 		for (const addedNode of mutation.addedNodes){
-			if (!addedNode.querySelector){
-				continue;
-			}
-			const storyCanvas = addedNode.querySelector("button canvas");
+			if (!(addedNode as any).querySelector) continue;
+			const storyCanvas = (addedNode as Element).querySelector("button canvas");
 			if (storyCanvas){
-				onStoryElementAdded(getStoryElementFromCanvas(storyCanvas));
+				insertLinkIntoStoryNode(getStoryElementFromCanvas(storyCanvas as HTMLCanvasElement));
 			}
 		}
 	}
 });
 observer.observe(document, { childList: true, subtree: true });
-Array.from(document.querySelectorAll("button canvas")).map(getStoryElementFromCanvas).forEach(onStoryElementAdded);
+
+//initial injection
+Array.from(document.querySelectorAll("button canvas"))
+.map(getStoryElementFromCanvas)
+.forEach(insertLinkIntoStoryNode);

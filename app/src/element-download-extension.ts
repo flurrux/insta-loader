@@ -1,99 +1,76 @@
 
-import { downloadResource } from '../lib/download-util.js';
-import instaChangeDetector from '../lib/insta-change-detection.js';
-import * as instaInfoUtil from '../lib/insta-info-util.js';
+import { downloadResource } from '../lib/download-util';
+import instaChangeDetector from '../lib/insta-change-detection';
+import * as instaInfoUtil from '../lib/insta-info-util';
 import { getFolderPath } from './disk-writing/lookup-write-path';
 import { download as storeOnDisk } from './disk-writing/disk-download';
-import { createFileNameByUrl } from '../lib/url-to-filename.js';
-import { getHighestQualityImageSrc } from '../lib/srcset-util.js';
+import { createFileNameByUrl } from '../lib/url-to-filename';
 
+const chrome = (window as any).chrome;
 
-const getAppropMediaSrc = (media) => {
-	return media.type == "video" ? media.src : getHighestQualityImageSrc(media);
-};
+const getResourceUrl = (url: string): string => chrome.extension.getURL(url);
 
-const getResourceUrl = url => chrome.extension.getURL(url);
-
-const getDownloadIconSrc = (iconAppendix) => {
+const getDownloadIconSrc = (iconAppendix: string): string => {
 	return getResourceUrl(`icons/download-icon-${iconAppendix}.png`);
 };
 
-const initIconImg = (img, size, iconAppendix) => {
-	let sizeStyle = size + "px";
-	img.style.width = sizeStyle;
-	img.style.height = sizeStyle;
-	img.src = getDownloadIconSrc(iconAppendix);
+const setElementSize = (element: HTMLElement, size: number) => {
+	Object.assign(element.style, {
+		width: size + "px",
+		height: size + "px"
+	});
 };
 
-const setElementSize = (element, size) => {
-
-	let sizeStyle = size + "px";
-	element.style.width = sizeStyle;
-	element.style.height = sizeStyle;
+interface SrcSetEntry {
+	src: string
+}
+interface MediaSrcObject {
+	type: "video" | "image",
+	src?: string,
+	srcset?: SrcSetEntry[]
+};
+const getHighestQualityMediaSrc = (media: MediaSrcObject): string => {
+	if (media.type === "video") return media.src;
+	const srcset = media.srcset;
+	return srcset[srcset.length - 1].src;
 };
 
-const findSpriteByText = (startNode, innerText) => {
 
-	//return document.evaluate(`//span[contains(text(), ${innerText})]`, startNode, null, XPathResult.ANY_TYPE, null ).iterateNext()
-	//const found = Array.from(startNode.querySelectorAll("span")).find(el => el.innerText == innerText);
-	const found = startNode.querySelector(`span [aria-label="${innerText}"`);
-	if (found === undefined){
-		return null;
-	}
-	return found;
-};
-
-const findAnySpriteByText = (startNode, innerTexts) => {
-
-	for (let innerText of innerTexts){
-
-		const found = findSpriteByText(startNode, innerText);
-		if (found != null){
-
-			return found;
-		}
-	}
-
-	return null;
-};
 
 class InstaLoaderBar {
+	instaElement: HTMLElement = null
 
 	constructor(){}
-
 	getMediaSrc(){}
-
-	addToInsta(instaElement){
-
+	addToInsta(instaElement: HTMLElement){
 		this.instaElement = instaElement;
 		this.appendToInsta(instaElement);
 	}
-
 	appendToInsta(instaElement){}
-
 	add(obj){
-
 		obj.instaBar = this;
 		this.getChildrenContainer().appendChild(obj.getElement());
 		obj.onAppend(this.instaElement);
 	}
-
-	getChildrenContainer(){}
-
-	getElement(){}
+	getChildrenContainer(): HTMLElement {
+		return null;
+	}
+	getElement(): HTMLElement {
+		return null;
+	}
 }
 
-class InstaButton extends EventTarget {
-
+class InstaButton {
 	constructor(){
-		super();
+		this.onDownloadStateChanged = (state) => {};
 	}
-
 	setStyle(size, padding, margin){}
 }
 
 class InstaDownloadButton extends InstaButton {
-
+	buttonElement: HTMLElement = null
+	buttonImg: HTMLElement = null
+	
 	constructor(){
 		
 		super();
@@ -264,7 +241,7 @@ class DiskDownloadButton extends InstaDownloadButton {
 	setState(nextState){
 
 		if (nextState !== this.currentState){
-			this.dispatchEvent(new CustomEvent("download-state-changed", { detail: { state: nextState } }));
+			this.onDownloadStateChanged(nextState);
 		}
 		const state = this.currentState = nextState;
 
@@ -364,10 +341,10 @@ const createBar = (bar, instaElement) => {
 
 	let diskButton = new DiskDownloadButton();
 	bar.add(diskButton);
-	diskButton.addEventListener("download-state-changed", e => {
+	diskButton.onDownloadStateChanged = (state: string) => {
 		if (!bar.diskDownloadStateChanged) return;
-		bar.diskDownloadStateChanged(e.detail.state);
-	});
+		bar.diskDownloadStateChanged(state);
+	};
 };
 
 //preview ########
@@ -409,7 +386,7 @@ class PreviewBar extends InstaLoaderBar {
 			.getMediaInfo(postHref)
 			.then(data => {
 				let mediaObj = data.mediaArray[0];
-				let src = getAppropMediaSrc(mediaObj);
+				let src = getHighestQualityMediaSrc(mediaObj);
 				let username = data.username;
 				return { username, src };
 			}); 
@@ -553,7 +530,7 @@ class StoryBar extends InstaLoaderBar {
 
 	getMediaSrc(){
 		let src = instaInfoUtil.getSrcOfStory(this.instaElement);
-		let username = instaInfoUtil.getUsernameOfStory(this.instaElement);
+		let username = instaInfoUtil.getUsernameByStoryUrl(window.location.href);
 		return Promise.resolve({ src, username });
 	}
 

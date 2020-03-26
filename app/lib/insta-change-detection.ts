@@ -2,15 +2,15 @@
 //like post, preview, story
 
 import { 
-	elementType, 
+	InstaElementType,
 	getPostMediaElement, 
-	getElementTypesOnCurrentPage 
-} from './insta-info-util.js';
+	getElementTypesOnCurrentPage,
+} from './insta-info-util';
 
 const instaChangeDetector = new EventTarget();
 
-const getContainedPreviewElements = (element) => {
-	return Array.from(element.querySelectorAll('a[href*="/p/"]'))
+const getContainedPreviewElements = (element: HTMLElement): HTMLElement[] => {
+	return (Array.from(element.querySelectorAll('a[href*="/p/"]')) as HTMLLinkElement[])
 		.filter(el => el.querySelector("img") != null)
 		.map(el => el.parentElement);
 };
@@ -24,7 +24,7 @@ const getContainedPostElements = (element) => {
 	}
 };
 
-const getContainedStoryElements = (element) => {
+const getContainedStoryElements = (element: HTMLElement): HTMLElement[] => {
 
 	//the story element is a <section> with classes _s7gs2  _d9zua (11.04.2018)
 	//it has a header, and an explicit width
@@ -39,24 +39,22 @@ const getContainedStoryElements = (element) => {
 
 class ObservedElementType {
 
-	constructor(elementType, getContainedElements, onAdded, onRemoved){
-
+	constructor(elementType: InstaElementType, getContainedElements, onAdded, onRemoved){
 		this.onAdded = onAdded;
 		this.onRemoved = onRemoved;
 		this.getContainedElements = getContainedElements;
 		this.elementType = elementType;
 	}
 
-	matchesType(elementTypes){
-
+	matchesType(elementTypes: InstaElementType[]){
 		return elementTypes.includes(this.elementType);
 	}
 }
 
 const observedElementTypes = [
-	new ObservedElementType(elementType.post, getContainedPostElements, onPostAdded, onPostRemoved),
-	new ObservedElementType(elementType.preview, getContainedPreviewElements, onPreviewAdded, onPreviewRemoved),
-	new ObservedElementType(elementType.story, getContainedStoryElements, onStoryAdded, onStoryRemoved),
+	new ObservedElementType("post", getContainedPostElements, onPostAdded, onPostRemoved),
+	new ObservedElementType("preview", getContainedPreviewElements, onPreviewAdded, onPreviewRemoved),
+	new ObservedElementType("story", getContainedStoryElements, onStoryAdded, onStoryRemoved),
 ];
 
 function invokeListener(name, element){
