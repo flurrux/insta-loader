@@ -206,7 +206,7 @@ class PromptDownloadButton extends InstaDownloadButton {
 		this.buttonImg.src = src;
 	}
 
-	promptDownload(){
+	async promptDownload(){
 		this.getMediaSrc()
 			.then(data => {
 				downloadResource(data.src, getFilenameForUrl(data.src));
@@ -354,22 +354,25 @@ class DiskDownloadButton extends InstaDownloadButton {
 	_onError(error){
 		console.error(error);
 		this.setState("fail");
-		chrome.runtime.sendMessage("nlbkkdknaklpmlpcifpbgoamdopmhkbh", {
-			type: "notification",
-			title: "instagram download failed",
-			message: error
+		chrome.runtime.sendMessage({
+			type: "show-notification",
+			notification: {
+				title: "download failed",
+				message: error,
+				iconUrl: getResourceUrl("icons/insta-loader-icon-48.png")
+			}
 		});
 	}
 
-	onClick(){
+	async onClick(){
 		this.setState("loading");
-		this.getMediaSrc()
-			.then(data => {
-				return this.storeOnDisk(data.src, data.username);
-			})
-			.catch(error => {
-				this._onError(error);
-			});
+		try {
+			const data = await this.getMediaSrc();
+			await this.storeOnDisk(data.src, data.username);
+		}
+		catch (e){
+			this._onError(e);
+		}
 	}
 }
 
