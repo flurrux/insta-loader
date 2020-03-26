@@ -351,14 +351,15 @@ class DiskDownloadButton extends InstaDownloadButton {
 		});
 	}
 
-	_onError(error){
+	_onError(error, mediaData){
 		console.error(error);
 		this.setState("fail");
+		const message = mediaData ? `${error}, \n user: ${mediaData.username}, \n src: ${mediaData.src}` : error;
 		chrome.runtime.sendMessage({
 			type: "show-notification",
 			notification: {
 				title: "download failed",
-				message: error,
+				message,
 				iconUrl: getResourceUrl("icons/insta-loader-icon-48.png")
 			}
 		});
@@ -366,12 +367,13 @@ class DiskDownloadButton extends InstaDownloadButton {
 
 	async onClick(){
 		this.setState("loading");
+		let data = null;
 		try {
-			const data = await this.getMediaSrc();
+			data = await this.getMediaSrc();
 			await this.storeOnDisk(data.src, data.username);
 		}
 		catch (e){
-			this._onError(e);
+			this._onError(e, data);
 		}
 	}
 }
