@@ -1,15 +1,9 @@
 
 import { downloadResource } from '../lib/download-util.js';
-import storeOnDisk from './disk-writing/request-disk-download.js';
 import instaChangeDetector from '../lib/insta-change-detection.js';
 import * as instaInfoUtil from '../lib/insta-info-util.js';
-import getWriteFolderPath from './disk-writing/request-write-path.js';
-
-const wait = (millis) => {
-	return new Promise((resolve, reject) => {
-		window.setTimeout(resolve, millis);
-	});
-};
+import { getFolderPath } from './disk-writing/lookup-write-path';
+import { download as storeOnDisk } from './disk-writing/disk-download';
 
 const getFilenameForUrl = (url) => {
 
@@ -28,13 +22,6 @@ const getFilenameForUrl = (url) => {
 	return url;
 };
 
-const triggerMouseEvent = (node, eventType) => {
-	
-	let clickEvent = document.createEvent ('MouseEvents');
-	clickEvent.initEvent (eventType, true, true);
-	node.dispatchEvent (clickEvent);
-};
-
 const getHighestQualityImageSrc = (media) => {
 
 	let srcset = media.srcset;
@@ -48,7 +35,7 @@ const getAppropMediaSrc = (media) => {
 	return media.type == "video" ? media.src : getHighestQualityImageSrc(media);
 };
 
-const getResourceUrl = url => window.getInstaExtensionUrl(url);
+const getResourceUrl = url => chrome.extension.getURL(url);
 
 const getDownloadIconSrc = (iconAppendix) => {
 	return getResourceUrl(`icons/download-icon-${iconAppendix}.png`);
@@ -334,12 +321,18 @@ class DiskDownloadButton extends InstaDownloadButton {
 		return { state: "loading" };
 	}
 
-	async storeOnDisk(mediaSrc, username){
-		const ownUsername = instaInfoUtil.getOwnUsername();
-		const folderPath = await getWriteFolderPath({ mediaSrc, username, ownUsername });
+	async storeOnDisk(mediaSrc, userName){
+		const ownUserName = instaInfoUtil.getOwnUsername();
+		const folderPath = await getFolderPath({ mediaSrc, userName, ownUserName });
+		// const folderPath = `/home/christian/Corn/Babes/${username}`;
 		const fileName = getFilenameForUrl(mediaSrc);
 		return new Promise((resolve, reject) => {
-			storeOnDisk({ mediaSrc, folderPath, fileName }, (answer) => {
+			const data = {
+				link: mediaSrc,
+				folderPath,
+				fileName
+			};
+			storeOnDisk(data, (answer) => {
 				const nextStateData = this.getNextState(answer);
 				const nextState = nextStateData.state;
 				if (nextState === "loading") {
@@ -542,164 +535,6 @@ instaChangeDetector.addEventListener("onPostAdded", e => onPostAdded(e.detail.el
 
 //story #######
 
-//pausing
-let mouseDownOnStory, appendStoryPauseButton;
-{
-	const press = () => {
-
-		let startTime = window.performance.now();
-		//console.log(getPressElement());
-		//let pressElement = getPressElement();
-		let duration = window.performance.now() - startTime;
-		triggerMouseEvent(getPressElement(), "mousedown");
-	};
-	mouseDownOnStory = press;
-
-	const getPressElement = () => {
-
-		return document.querySelector("._v88d1");
-	};
-
-	const pausedLabelClass = "_53tkq";
-
-	const isPlaying = () => {
-
-		return document.querySelector(`.${pausedLabelClass}`) == null;
-	};
-
-	{
-		let StoryPlayer;
-		{
-			
-			StoryPlayer = {};
-			StoryPlayer.onPlayStateChanged = [];
-
-			const onPlayStateChanged = (playing) => {
-
-				StoryPlayer.onPlayStateChanged.forEach(callback => callback(playing));
-			};
-
-			const isPausedLabel = (element) => {
-
-				return element.classList.contains("");
-			};
-
-			const onPlayStateMutation = (mutation) => {
-
-				onPlayStateChanged(isPlaying());    
-			};
-
-			const initPlayStateObserver = () => {
-
-				let pauseLabelParent = document.querySelector("._2tt3z");
-				let observer = new MutationObserver((mutationArray) => onPlayStateMutation(mutationArray[0]));
-				observer.observe(pauseLabelParent, { childList: true });
-			};
-
-			StoryPlayer.init = initPlayStateObserver;
-		}
-
-		let StoryPauser;
-		{
-			StoryPauser = {};
-
-			let customPaused = false;
-			let triggeredPlayStateChange = false;
-			let onMouseDown = () => {
-
-				triggeredPlayStateChange = true;
-				customPaused = false;
-				let node = getPressElement();
-				node.removeEventListener("mousedown", onMouseDown);
-				node.removeEventListener("mouseleave", onMouseLeave);
-			};
-
-			const onMouseLeave = () => {
-
-			};
-
-			const pauseStory = () => {
-				
-				customPaused = true;
-				press();
-
-				let node = getPressElement();
-				node.addEventListener("mousedown", onMouseDown);
-				node.addEventListener("mouseleave", onMouseLeave);
-			};
-
-			const resumeStory = () => {
-
-				customPaused = false;
-				let node = getPressElement();
-				node.removeEventListener("mousedown", onMouseDown);
-				node.removeEventListener("mouseleave", onMouseLeave);
-				triggerMouseEvent(node, "mouseup");
-			};
-
-			const onPlayStateChanged = (playing) => {
-				
-				if (triggeredPlayStateChange){
-
-					triggeredPlayStateChange = false;
-				}
-				else {
-
-					if (customPaused && playing){
-
-						triggeredPlayStateChange = true;
-						console.log("press");
-						setTimeout(20, press);
-					}
-				}
-			};
-			StoryPlayer.onPlayStateChanged.push(onPlayStateChanged);
-
-			const appendPauseButton = () => {
-
-				let buttonHtml = `
-					<button class="_t848o" style="top: 50px;">
-						<div class="coreSpriteCloseLight">
-							<span class="_8scx2">Close</span>
-						</div>
-					</button>
-				`;
-
-				let closeButton = document.querySelector("._t848o");
-				closeButton.insertAdjacentHTML("afterend", buttonHtml);
-				let button = closeButton.nextElementSibling;
-					
-				const onButtonClick = () => {
-
-					triggeredPlayStateChange = true;
-					let playing = isPlaying();
-					if (playing){
-
-						pauseStory();
-					}
-					else {
-
-						if (customPaused){
-
-							resumeStory();
-						}
-					}
-				};
-				button.addEventListener("click", onButtonClick);
-
-			};
-
-			StoryPauser.append = appendPauseButton;
-		}
-
-		appendStoryPauseButton = () => {
-
-			StoryPlayer.init();
-			StoryPauser.append();
-		};
-	}
-}
-
 class StoryBar extends InstaLoaderBar {
 
 	constructor(){
@@ -775,10 +610,6 @@ class StoryBar extends InstaLoaderBar {
 }
 
 const onStoryAdded = (storyElement) => {
-
-	//appendStoryPauseButton();
-	//createStoryDownloadButton(storyElement);
-	
 	createBar(new StoryBar(), storyElement);
 };
 
@@ -788,68 +619,3 @@ instaChangeDetector.addEventListener("onStoryAdded", e => onStoryAdded(e.detail.
 
 
 instaChangeDetector.start();
-
-
-
-
-/*
-	{
-		function createStoryDownloadButton(storyElement){
-
-			let closeButton = storyElement.querySelector('*[class*="Close"').parentElement;
-			let downloadButtonHtml = `
-
-				<button class="_t848o" style="top: 90px;">
-					<img style="width: 32px; height: 32px;" />
-				</button>
-			`;
-
-			closeButton.insertAdjacentHTML('afterend', downloadButtonHtml);
-			let downloadButton = closeButton.nextElementSibling;
-
-			let img = downloadButton.querySelector("img");
-			initIconImg(img, 32, "white");
-
-			function onClick(){
-
-				let src = instaInfoUtil.getSrcOfStory(storyElement);
-				downloadUtil.downloadResource(src);
-			}
-			downloadButton.addEventListener("click", onClick);
-		}
-
-		function createPostDownloadButton(postElement){
-
-			
-			let borderColors = ["", "cyan", "blue", "orange", "red", "lime"];
-			let borderColor = postElement.style.borderColor;
-			let nextBorderColor = borderColors[borderColors.indexOf(borderColor) + 1];
-			postElement.style.borderWidth = "5px";
-			postElement.style.borderColor = nextBorderColor;
-			return;
-			
-		}
-
-		function createPreviewDownloadButton(previewElement){
-
-			//when a preview element is hovered, the number of likes and comments
-			//show up in an overlay. that overlay is appended as the last child 
-			//and takes all the hover events. so when it shows up, move our overlay
-			//down to be the last child
-			
-			function onLastChildChanged(mutations){
-
-				let mutation = mutations[0];
-				let addedNodes = mutation.addedNodes;
-				if (addedNodes.length > 0){
-
-					linkElement.removeChild(overlayEl);
-					linkElement.appendChild(overlayEl);
-				}
-			}
-			let observer = new MutationObserver(onLastChildChanged);
-			observer.observe(linkElement, { childList: true });
-			
-		}
-	}
-*/

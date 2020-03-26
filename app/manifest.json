@@ -12,22 +12,14 @@
 	},
 
 	"background": {
-		"scripts": [
-			"src/disk-writing/disk-download-background.js",
-			"src/notifications-background.js"
-		],
+		"scripts": ["disk-download-background.js"],
 		"persistent": false
 	},
 
 	"content_scripts": [
 		{
 			"matches": ["*://www.instagram.com/*"],
-			"js": [
-				"lib/extension-url-exposing.js", 
-				"src/content.js", 
-				"src/disk-writing/write-path-manager.js", 
-				"src/disk-writing/disk-download.js"
-			]
+			"js": ["index.js"]
 		}
 	],
 
@@ -35,12 +27,11 @@
 		"storage",
 		"nativeMessaging",
 		"tabs",
-		"*://www.instagram.com/*",
-		"https: //unpkg.com/lit-html?module"
+		"*://www.instagram.com/*"
 	],
 
 	"options_ui": {
-		"page": "src/options/options.html",
+		"page": "options/options.html",
 		"chrome_style": true
 	},
 

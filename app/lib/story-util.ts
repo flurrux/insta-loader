@@ -1,19 +1,25 @@
-﻿function defer(millis){
+﻿const defer = (millis: number) => {
 	return new Promise((resolve, reject) => {
 		window.setTimeout(resolve, millis);
 	});
-}
+};
 
-function storyNodeToData(node){
+const findUsernameOfStory = (node: HTMLElement) => {
+	return Array.from(
+		node.querySelectorAll("span")
+	).find(span => span.children.length === 0).innerText;
+};
+
+export const storyNodeToData = (node: HTMLElement) => {
 	return {
 		thumbnail: node.querySelector("img").src,
-		name: Array.from(node.querySelectorAll("span")).find(span => span.children.length === 0).innerText,
+		name: findUsernameOfStory(node),
 		relativeTime: node.querySelector("time").innerHTML,
 		seen: node.querySelector("canvas").width < 55
 	};
-}
+};
 
-export function getStoryData(scrollEl){
+export const getStoryData = (scrollEl: HTMLElement) => {
 	return new Promise((resolve, reject) => {
 		//const scrollEl = null;
 		const storyContainer = scrollEl.children[0];
@@ -39,4 +45,24 @@ export function getStoryData(scrollEl){
 		stories.push(...Array.from(storyContainer.children).map(storyNodeToData));
 		scrollEl.scrollBy(0, scrollDeltaCount * storyElementHeight);
 	});
-}
+};
+
+export const findStoryElement = (): HTMLElement => {
+	const parent = document.body;
+	const firstCanvas = parent.querySelector("button canvas");
+	if (!firstCanvas) {
+		return;
+	}
+	let currentChild = firstCanvas.parentElement;
+	for (let a = 0; a < 10000; a++) {
+		const currentParent = currentChild.parentElement;
+		if (!currentParent) {
+			return;
+		}
+		if (currentParent.offsetHeight - currentChild.offsetHeight < 0) {
+			return currentParent;
+		}
+		currentChild = currentParent;
+	}
+	console.warn("either something went wrong or the dom is very large");
+};

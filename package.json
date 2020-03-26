@@ -1,0 +1,23 @@
+{
+  "name": "@flurrux/insta-loader",
+  "version": "1.0.0",
+  "description": "download buttons for instagram",
+  "scripts": {
+    "build:index": "parcel build ./app/src/index.ts -o ./dist/index.js",
+    "build:background": "parcel build ./app/src/disk-writing/disk-download-background.ts -o ./dist/disk-download-background.js",
+    "build:options": "parcel build ./app/src/options/options.js --out-dir ./dist/options --no-content-hash && cp ./app/src/options/options.html ./dist/options/options.html",
+    "build:copy-static": "cp ./app/manifest.json ./dist/manifest.json && cp -r ./app/icons/ ./dist/icons/",
+    "build": "npm run build:index && npm run build:background && npm run build:options && npm run build:copy-static"
+  },
+  "author": "Christian Hoffmann <christianhoffmann@outlook.com>",
+  "dependencies": {
+    "ramda": "^0.26.1"
+  },
+  "browserslist": [
+    "Chrome > 67"
+  ],
+  "devDependencies": {
+    "cssnano": "^4.1.10",
+    "typescript": "^3.8.3"
+  }
+}
