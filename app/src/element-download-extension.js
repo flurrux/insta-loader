@@ -4,34 +4,11 @@ import instaChangeDetector from '../lib/insta-change-detection.js';
 import * as instaInfoUtil from '../lib/insta-info-util.js';
 import { getFolderPath } from './disk-writing/lookup-write-path';
 import { download as storeOnDisk } from './disk-writing/disk-download';
+import { createFileNameByUrl } from '../lib/url-to-filename.js';
+import { getHighestQualityImageSrc } from '../lib/srcset-util.js';
 
-const getFilenameForUrl = (url) => {
-
-	const endings = [".mp4", ".jpg"];
-	for (let ending of endings){
-
-		const index = url.indexOf(ending);
-		if (index >= 0){
-
-			let filename = url.substring(0, index + ending.length);
-			filename = filename.substring(filename.lastIndexOf("/") + 1);
-			return filename;
-		}
-	}
-	
-	return url;
-};
-
-const getHighestQualityImageSrc = (media) => {
-
-	let srcset = media.srcset;
-	let highQualSrc = srcset[srcset.length - 1].src;
-	//highQualSrc = highQualSrc.substring(0, highQualSrc.indexOf(".jpg") + 4);
-	return highQualSrc;
-};
 
 const getAppropMediaSrc = (media) => {
-
 	return media.type == "video" ? media.src : getHighestQualityImageSrc(media);
 };
 
@@ -209,7 +186,8 @@ class PromptDownloadButton extends InstaDownloadButton {
 	async promptDownload(){
 		this.getMediaSrc()
 			.then(data => {
-				downloadResource(data.src, getFilenameForUrl(data.src));
+				const fileName = createFileNameByUrl(data.src);
+				downloadResource(data.src, fileName);
 			})
 			.catch(error => {
 				console.error(error);
@@ -324,8 +302,7 @@ class DiskDownloadButton extends InstaDownloadButton {
 	async storeOnDisk(mediaSrc, userName){
 		const ownUserName = instaInfoUtil.getOwnUsername();
 		const folderPath = await getFolderPath({ mediaSrc, userName, ownUserName });
-		// const folderPath = `/home/christian/Corn/Babes/${username}`;
-		const fileName = getFilenameForUrl(mediaSrc);
+		const fileName = createFileNameByUrl(mediaSrc);
 		return new Promise((resolve, reject) => {
 			const data = {
 				link: mediaSrc,
