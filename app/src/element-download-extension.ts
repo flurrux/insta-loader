@@ -64,6 +64,10 @@ interface MediaWriteInfo {
 	username: string
 };
 type LoadingCallback = (progress: number) => void;
+interface DiskDownloadButtonOptions {
+	onDownloadStart: () => void,
+	onDownloadEnd: () => void
+};
 const downloadFileIndirectly = async (
 	getMediaInfo: () => Promise<MediaWriteInfo>, 
 	loadingCallback: LoadingCallback) => {
@@ -106,17 +110,30 @@ const downloadFileIndirectly = async (
 		throw error;
 	}
 };
-const createDiskDownloadButton = (getMediaInfo: () => Promise<MediaWriteInfo>): HTMLElement => {
+const createDiskDownloadButton = (
+	getMediaInfo: () => Promise<MediaWriteInfo>, 
+	options: Partial<DiskDownloadButtonOptions> = {}): HTMLElement => {
+	
+	options = {
+		onDownloadStart: () => {},
+		onDownloadEnd: () => {},
+		...options
+	};
+
 	const buttonWrapper = new DownloadFeedbackButton();
 	const buttonEl = buttonWrapper.getElement();
 	buttonEl.addEventListener("mousedown", e => {
 		buttonWrapper.downloadState = "loading";
+		options.onDownloadStart();
 		downloadFileIndirectly(
 				getMediaInfo, 
 				(progress: number) => buttonWrapper.loadingProgress = progress
 			)
 			.then(() => buttonWrapper.downloadState = "success")
 			.catch(() => buttonWrapper.downloadState = "fail")
+			.finally(() => {
+				options.onDownloadEnd();
+			})
 	});
 	return buttonEl;
 };
@@ -247,6 +264,33 @@ const getStoryDownloadElementStyle = (storyEl: HTMLElement): Partial<CSSStyleDec
 		margin
 	};
 };
+
+interface StoryPauseHandle {
+	keepPaused: () => void,
+	continue: () => void
+};
+const createStoryPauseHandle = (): StoryPauseHandle => {
+	let _storyPaused = false;
+	const video = document.querySelector("video");
+	const keepStoryPaused = () => {
+		_storyPaused = true;
+		const loop = () => {
+			if (!video.paused) {
+				video.pause();
+			}
+			if (!_storyPaused) return;
+			window.requestAnimationFrame(loop);
+		};
+		loop();
+	};
+	const continueStory = () => {
+		_storyPaused = false;
+	};
+	return {
+		keepPaused: keepStoryPaused,
+		continue: continueStory
+	}
+};
 const injectDownloadButtonsIntoStory = (storyEl: HTMLElement) => {
 	const closeEl = findCloseStoryElement(storyEl);
 	if (closeEl === null){
@@ -257,8 +301,21 @@ const injectDownloadButtonsIntoStory = (storyEl: HTMLElement) => {
 	const container = createElementByHTML(`
 		<div style="position: absolute; right: -56px; top: 56px;"></div>
 	`);
-	const getMediaSrc = () => getMediaSrcOfStoryElement(storyEl);
-	const diskDownloadButton = createDiskDownloadButton(getMediaSrc);
+	
+	const pauseHandleDownloadOptions = (() => {
+		let pauseHandle: StoryPauseHandle = null;
+		return {
+			onDownloadStart: () => {
+				pauseHandle = createStoryPauseHandle();
+				pauseHandle.keepPaused();
+			},
+			onDownloadEnd: () => pauseHandle.continue()
+		};
+	})();
+	const diskDownloadButton = createDiskDownloadButton(
+		() => getMediaSrcOfStoryElement(storyEl),
+		pauseHandleDownloadOptions
+	);
 	Object.assign(diskDownloadButton.style, getStoryDownloadElementStyle(storyEl));
 	container.appendChild(diskDownloadButton);
 
