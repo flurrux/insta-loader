@@ -1,0 +1,31 @@
+﻿
+<html>
+	<body>
+		<script>
+			class DownloadFeedbackButton extends HTMLElement {
+				get downloadState() {
+					return this._downloadState;
+				}
+				set downloadState(val) {
+					this._downloadState = val;
+					this.shadowRoot.querySelector("button").innerHTML = this._downloadState;
+					return this._downloadState;
+				}
+				constructor() {
+					super();
+					this._downloadState = "initial";
+					const shadowRoot = this.attachShadow({ mode: 'open' });
+					shadowRoot.innerHTML = `
+						<button>${this.downloadState}</button>
+					`;
+					const button = shadowRoot.querySelector("button");
+					button.addEventListener("click", e => {
+						this.downloadState = "loading";
+					});
+				}
+			}
+			customElements.define('download-feedback-button', DownloadFeedbackButton);
+		</script>
+		<download-feedback-button></download-feedback-button>
+	</body>
+</html>

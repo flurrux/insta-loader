@@ -5,310 +5,94 @@ import * as instaInfoUtil from '../lib/insta-info-util';
 import { getFolderPath } from './disk-writing/lookup-write-path';
 import { download as storeOnDisk } from './disk-writing/disk-download';
 import { createFileNameByUrl } from '../lib/url-to-filename';
+import { DownloadFeedbackButton } from './download-feedback-button';
 
 const chrome = (window as any).chrome;
 
 const getResourceUrl = (url: string): string => chrome.extension.getURL(url);
 
+const createElementByHTML = (html: string): HTMLElement => {
+	const wrapper = document.createElement("div") as HTMLDivElement;
+	wrapper.innerHTML = html;
+	return wrapper.firstElementChild as HTMLElement;
+};
+
+
+//prompt download ###
+
 const getDownloadIconSrc = (iconAppendix: string): string => {
 	return getResourceUrl(`icons/download-icon-${iconAppendix}.png`);
 };
+const getPromptDownloadIcon = (type: instaInfoUtil.InstaElementType): string => {
+	let elementTypes = instaInfoUtil.getElementTypesOnCurrentPage();
+	let elementType = elementTypes[0];
+	let iconAppendixMap = {
+		preview: "white",
+		post: "dark",
+		story: "white"
+	};
+	let iconAppendix = iconAppendixMap[elementType];
+	let src = getDownloadIconSrc(iconAppendix);
+	return src;
+};
+const downloadFileDirectly = async (getMediaSrc: () => Promise<string>) => {
+	try {
+		const src = await getMediaSrc();
+		const fileName = createFileNameByUrl(src);
+		downloadResource(src, fileName);
+	}
+	catch(e){
+		console.error(e);
+	}
+};
+const createPromptDownloadButton = (getMediaSrc: () => Promise<string>): HTMLElement => {
+	const button = createElementByHTML(`
+		<a style="width: fit-content; height: fit-content; cursor: pointer;">
+			<img src=${getPromptDownloadIcon(instaInfoUtil.getElementTypesOnCurrentPage()[0])}></img>
+		</a>
+	`);	
+	button.addEventListener("click", () => downloadFileDirectly(getMediaSrc));
 
-const setElementSize = (element: HTMLElement, size: number) => {
-	Object.assign(element.style, {
-		width: size + "px",
-		height: size + "px"
-	});
+	return button;
 };
 
-interface SrcSetEntry {
-	src: string
-}
-interface MediaSrcObject {
-	type: "video" | "image",
-	src?: string,
-	srcset?: SrcSetEntry[]
+
+//disk download ###
+
+interface MediaWriteInfo {
+	src: string,
+	username: string
 };
-const getHighestQualityMediaSrc = (media: MediaSrcObject): string => {
-	if (media.type === "video") return media.src;
-	const srcset = media.srcset;
-	return srcset[srcset.length - 1].src;
-};
-
-
-
-class InstaLoaderBar {
-	instaElement: HTMLElement = null
-
-	constructor(){}
-	getMediaSrc(){}
-	addToInsta(instaElement: HTMLElement){
-		this.instaElement = instaElement;
-		this.appendToInsta(instaElement);
-	}
-	appendToInsta(instaElement){}
-	add(obj){
-		obj.instaBar = this;
-		this.getChildrenContainer().appendChild(obj.getElement());
-		obj.onAppend(this.instaElement);
-	}
-	getChildrenContainer(): HTMLElement {
-		return null;
-	}
-	getElement(): HTMLElement {
-		return null;
-	}
-}
-
-class InstaButton {
-	constructor(){
-		this.onDownloadStateChanged = (state) => {};
-	}
-	setStyle(size, padding, margin){}
-}
-
-class InstaDownloadButton extends InstaButton {
-	buttonElement: HTMLElement = null
-	buttonImg: HTMLElement = null
+type LoadingCallback = (progress: number) => void;
+const downloadFileIndirectly = async (
+	getMediaInfo: () => Promise<MediaWriteInfo>, 
+	loadingCallback: LoadingCallback) => {
 	
-	constructor(){
-		
-		super();
-
-		let button = document.createElement("a");
-		button.style.width = "fit-content";
-		button.style.height = "fit-content";
-		button.style.cursor = "pointer";
-		button.addEventListener("click", () => this.onClick());
-
-		let buttonImg = document.createElement("img");
-		button.appendChild(buttonImg);
-
-		this.buttonElement = button;
-		this.buttonImg = buttonImg;
-	}
-
-	getMediaSrc(){
-		return this.instaBar.getMediaSrc();
-	}
-
-	//onValidMediaRetrieved(mediaSrc){}
-
-	onAppend(instaElement){
-
-		/*
-		let elementTypes = InstaLoader.infoUtil.getElementTypesOnCurrentPage();
-		let elementType = elementTypes[0];
-		let iconAppendixMap = {
-			preview: "gray",
-			post: "dark",
-			story: "black"
-		};
-		let iconAppendix = iconAppendixMap[elementType];
-		let src = getIconSrc(iconAppendix);
-		this.buttonImg.src = src;
-		*/
-	}
-
-	setStyle(size, padding, margin){
-
-		let buttonImg = this.buttonImg;
-		let button = this.buttonElement;
-
-		setElementSize(buttonImg, size);
-
-		button.style.padding = padding;
-		button.style.margin = margin;
-	}
-
-	getElement(){
-
-		return this.buttonElement;
-	}
-
-	onClick(){
-		/*
-		this.getMediaSrc(mediaSrc => {
-			if (mediaSrc == null){
-				console.error("no media found");
-				return;
-			}
-			this.onValidMediaRetrieved(mediaSrc);
-		});
-		*/
-	}
-}
-
-class PromptDownloadButton extends InstaDownloadButton {
-
-	constructor(){
-		
-		super();
-	}
-
-	onAppend(instaElement){
-
-		let elementTypes = instaInfoUtil.getElementTypesOnCurrentPage();
-		let elementType = elementTypes[0];
-		let iconAppendixMap = {
-			preview: "white",
-			post: "dark",
-			story: "white"
-		};
-		let iconAppendix = iconAppendixMap[elementType];
-		let src = getDownloadIconSrc(iconAppendix);
-		this.buttonImg.src = src;
-	}
-
-	async promptDownload(){
-		this.getMediaSrc()
-			.then(data => {
-				const fileName = createFileNameByUrl(data.src);
-				downloadResource(data.src, fileName);
-			})
-			.catch(error => {
-				console.error(error);
-			});
-	}
-
-	onClick(){
-		this.promptDownload();
-	}
-}
-
-class DiskDownloadButton extends InstaDownloadButton {
-
-	constructor(){
-
-		super();
-
-		//states:
-		//default, loading, success, fail
-		this.currentState = "default"; //"loading", "success", "fail"
-		this.stateIconSources = {
-			default: "save", 
-			loading: "spinner-of-dots",
-			success: "verify-sign-green",
-			fail: "error"
-		};
-		this.setState("default");
-		
-		//loading
-		this._loadingProgress = 0;
-		this._spinnerCtx = null;
-		this._spinnerCanvas = null;
-	}
-
-	onAppend(instaElement){
-
-		instaChangeDetector.addOnPostSrcChanged(instaElement, () => this.setState("default"));
-	}
-
-
-	_redrawSpinner(){
-		const ctx = this._spinnerCtx;
-		const progress = this._loadingProgress;
-		const squareSize = 32;
-		ctx.clearRect(0, 0, squareSize, squareSize);
-		ctx.lineWidth = 4;
-		const radius = (squareSize - ctx.lineWidth) / 2;
-		ctx.strokeStyle = "cyan";
-		ctx.lineCap = "round";
-		ctx.beginPath();
-		ctx.arc(squareSize / 2, squareSize / 2, radius, -Math.PI / 2, progress * Math.PI * 2 - Math.PI / 2);
-		ctx.stroke();
-
-		this.buttonImg.src = this._spinnerCanvas.toDataURL();
-	}
-	_handleSpinner(){
-		const state = this.currentState;
-		if (state === "loading"){
-			if (this._spinnerCtx === null){
-				const canvas = document.createElement("canvas");
-				canvas.width = 32;
-				canvas.height = 32;
-				this._spinnerCtx = canvas.getContext("2d");
-				this._spinnerCanvas = canvas;
-			}
-			this._redrawSpinner();
-		}
-
-		if (state !== "loading" && this._spinnerCtx !== null){
-			this._spinnerCtx = null;
-			this._spinnerCanvas = null;
-		}
-	}
-	setState(nextState){
-
-		if (nextState !== this.currentState){
-			this.onDownloadStateChanged(nextState);
-		}
-		const state = this.currentState = nextState;
-
-		this._handleSpinner();
-		if (state !== "loading") {
-			let iconName = this.stateIconSources[state];
-			if (this.currentState == "default"){
-
-				let elementTypes = instaInfoUtil.getElementTypesOnCurrentPage();
-				let elementType = elementTypes[0];
-				let iconAppendix = elementType == "post" ? "dark" : "white";
-				iconName += " " + iconAppendix;
-			}
-			this.buttonImg.src = getResourceUrl(`icons/${iconName}.png`);
-		}
-	}
-
-	getNextState(answer){
-		if (answer.origin === "native host disconnect") {
-			return { state: "fail", error: answer.data };
-		}
-		else if (answer.origin === "native host response") {
-			const resultEntry = answer.data[0];
-			const resultEntryType = resultEntry.type;
-			if (resultEntryType === "success") {
-				return { state: "success" };
-			}
-			else if (resultEntryType === "error") {
-				return { state: "fail", error: resultEntry.data };
-			}
-		}
-		return { state: "loading" };
-	}
-
-	async storeOnDisk(mediaSrc, userName){
+	let mediaInfo: MediaWriteInfo = null;	
+	try {
 		const ownUserName = instaInfoUtil.getOwnUsername();
-		const folderPath = await getFolderPath({ mediaSrc, userName, ownUserName });
+		mediaInfo = await getMediaInfo();
+		const mediaSrc = mediaInfo.src;
 		const fileName = createFileNameByUrl(mediaSrc);
-		return new Promise((resolve, reject) => {
-			const data = {
+		
+		const folderPath = await getFolderPath({ 
+			mediaSrc, 
+			userName: mediaInfo.username, 
+			ownUserName 
+		});
+
+		await storeOnDisk(
+			{
 				link: mediaSrc,
 				folderPath,
 				fileName
-			};
-			storeOnDisk(data, (answer) => {
-				const nextStateData = this.getNextState(answer);
-				const nextState = nextStateData.state;
-				if (nextState === "loading") {
-					this._loadingProgress = answer.data[0].data.progress;
-					this.setState("loading");
-				}
-				else if (nextState === "success") {
-					this.setState("success");
-					resolve();
-				}
-				else if (nextState === "fail"){
-					this.setState("fail");
-					reject(nextStateData.error);
-				}
-			});
-		});
+			},
+			loadingCallback
+		);
 	}
-
-	_onError(error, mediaData){
+	catch(error){
 		console.error(error);
-		this.setState("fail");
-		const message = mediaData ? `${error}, \n user: ${mediaData.username}, \n src: ${mediaData.src}` : error;
+		const message = mediaInfo ? `${error}, \n user: ${mediaInfo.username}, \n src: ${mediaInfo.src}` : error;
 		chrome.runtime.sendMessage({
 			type: "show-notification",
 			notification: {
@@ -317,263 +101,171 @@ class DiskDownloadButton extends InstaDownloadButton {
 				iconUrl: getResourceUrl("icons/insta-loader-icon-48.png")
 			}
 		});
+
+		//throw the error again for caller
+		throw error;
 	}
+};
+const createDiskDownloadButton = (getMediaInfo: () => Promise<MediaWriteInfo>): HTMLElement => {
+	const buttonWrapper = new DownloadFeedbackButton();
+	const buttonEl = buttonWrapper.getElement();
+	buttonEl.addEventListener("mousedown", e => {
+		buttonWrapper.downloadState = "loading";
+		downloadFileIndirectly(
+				getMediaInfo, 
+				(progress: number) => buttonWrapper.loadingProgress = progress
+			)
+			.then(() => buttonWrapper.downloadState = "success")
+			.catch(() => buttonWrapper.downloadState = "fail")
+	});
+	return buttonEl;
+};
 
-	async onClick(){
-		this.setState("loading");
-		let data = null;
-		try {
-			data = await this.getMediaSrc();
-			await this.storeOnDisk(data.src, data.username);
-		}
-		catch (e){
-			this._onError(e, data);
-		}
+
+//post ###
+
+const findSavePostElement = (postElement: HTMLElement): Element => {
+	const section = postElement.querySelector("section");
+	if (!section) {
+		console.warn("section with buttons not found");
+		return;
 	}
-}
-
-const createBar = (bar, instaElement) => {
-
-	bar.addToInsta(instaElement);
-
-	let promptButton = new PromptDownloadButton();
-	bar.add(promptButton);
-
-	let diskButton = new DiskDownloadButton();
-	bar.add(diskButton);
-	diskButton.onDownloadStateChanged = (state: string) => {
-		if (!bar.diskDownloadStateChanged) return;
-		bar.diskDownloadStateChanged(state);
+	const svgs = Array.from(section.querySelectorAll("svg"));
+	return svgs[svgs.length - 1];
+};
+const getPostDownloadElementStyle = (postElement: HTMLElement): Partial<CSSStyleDeclaration> => {
+	const saveToCollectionEl = findSavePostElement(postElement);
+	const saveToCollectionButton = saveToCollectionEl.parentElement;
+	const size = saveToCollectionEl.clientHeight + "px";
+	const padding = getComputedStyle(saveToCollectionButton).getPropertyValue("padding");
+	return {
+		width: size,
+		height: size,
+		padding,
 	};
 };
-
-//preview ########
-
-class PreviewBar extends InstaLoaderBar {
-
-	constructor(){
-
-		super();
-
-		let overlayEl = document.createElement("div");
-		let overlayStyle = overlayEl.style;
-		overlayStyle.width = "100%";
-		overlayStyle.position = "absolute";
-		overlayStyle.left = "0px";
-		overlayStyle.bottom = "0px";
-		overlayStyle.flexDirection = "row";
-
-		this.overlayContainer = overlayEl;
-	}
-
-	add(obj){
-
-		super.add(obj);
-		
-		let size = 24;
-		let padding = "5px";
-		obj.setStyle(size, padding, "0px");
-	}
-
-	getMediaSrc(){
-		let linkElement = this.instaElement.querySelector("a");
-		if (linkElement == null){
-			return Promise.reject("link-element not found");
-		}
-		let postHref = linkElement.href;
-
-		return instaInfoUtil
-			.getMediaInfo(postHref)
-			.then(data => {
-				let mediaObj = data.mediaArray[0];
-				let src = getHighestQualityMediaSrc(mediaObj);
-				let username = data.username;
-				return { username, src };
-			}); 
-	}
-
-	appendToInsta(instaElement){
-
-		instaElement.appendChild(this.overlayContainer);
-	}
-
-	getChildrenContainer(){
-
-		return this.overlayContainer;
-	}
-
-	getElement(){
-
-		return this.overlayContainer;
-	}
-}
-const onPreviewAdded = (previewElement) => {
-
-	createBar(new PreviewBar(), previewElement);
+const applyPostDownloadElementStyle = (postElement: HTMLElement, element: HTMLElement) => {
+	Object.assign(element.style, getPostDownloadElementStyle(postElement));
 };
-instaChangeDetector.addEventListener("onPreviewAdded", e => onPreviewAdded(e.detail.element));
-
-//post ############
-
-class PostBar extends InstaLoaderBar {
-
-	constructor(){
-		
-		super();
-		
-		let container = document.createElement("div");
-		container.style.flexDirection = "row";
-
-		this.container = container;
+const getMediaSrcOfPostElement = (postElement: HTMLElement): Promise<MediaWriteInfo> => {
+	let previewSrc = instaInfoUtil.getPreviewSrcOfPost(postElement);
+	if (!previewSrc) {
+		return Promise.reject("preview-src not found");
 	}
-
-	findSaveElement(){
-		const parent = this.instaElement;
-		const section = parent.querySelector("section");
-		if (!section){
-			console.warn("section with buttons not found");
-			return;
-		}
-		const svgs = Array.from(section.querySelectorAll("svg"));
-		return svgs[svgs.length - 1];
-	}
-
-	add(obj){
-
-		super.add(obj);
-		
-		let saveToCollectionEl = this.findSaveElement();
-		let blueprintEl = saveToCollectionEl.parentElement;
-
-		let size = saveToCollectionEl.clientHeight;
-		let padding = getComputedStyle(blueprintEl).padding;
-		obj.setStyle(size, padding, "0px");
-	}
-
-	getMediaSrc(){
-		let postElement = this.instaElement;
-		let previewSrc = instaInfoUtil.getPreviewSrcOfPost(postElement);
-		if (previewSrc == null){
-			return Promise.reject("preview-src not found");
-		}
-		const data = instaInfoUtil.getMediaInfoByHtml(postElement);
-		return Promise.resolve({ 
-			username: data.username, 
-			src: data.media.src 
-		});
-	};
-
-	appendToInsta(instaElement){
-
-		this.instaElement = instaElement;
-		let saveSprite = this.findSaveElement();
-		if (saveSprite == null){
-			console.warn("save-sprite not found");
-			return;
-		}
-		let savePostEl = saveSprite.parentElement.parentElement;
-		savePostEl.style.marginRight = "0px";
-		savePostEl.parentElement.insertAdjacentElement("beforeend", this.container);
-	}
-
-	getChildrenContainer(){
-
-		return this.container;
-	}
-
-	getElement(){
-
-		return this.container;
-	}
-}
-const onPostAdded = (postElement) => {
-	createBar(new PostBar(), postElement);
+	const data = instaInfoUtil.getMediaInfoByHtml(postElement);
+	return Promise.resolve({
+		username: data.username,
+		src: data.media.src
+	} as MediaWriteInfo);
 };
-instaChangeDetector.addEventListener("onPostAdded", e => onPostAdded(e.detail.element));
-
-
-//story #######
-
-class StoryBar extends InstaLoaderBar {
-
-	constructor(){
-
-		super();
-
-		let container = document.createElement("div");
-		let containerStyle = container.style;
-		containerStyle.position = "absolute";
-		containerStyle.right = "-56px";
-		containerStyle.top = "56px";
-
-		this.container = container;
+const injectDownloadButtonsIntoPost = (postElement: HTMLElement) => {
+	let saveElement = findSavePostElement(postElement);
+	if (saveElement === null) {
+		console.warn("save-sprite not found");
+		return;
 	}
+	let savePostEl = saveElement.parentElement.parentElement;
+	savePostEl.style.marginRight = "0px";
 
-	findCloseElement(){
+	const bar = createElementByHTML(`
+		<div style="display: flex; flex-direction: row;"></div>
+	`);
+	const getMediaSrc = () => getMediaSrcOfPostElement(postElement);
+	const downloadButton = createDiskDownloadButton(getMediaSrc);
+	applyPostDownloadElementStyle(postElement, downloadButton);
+	bar.appendChild(downloadButton);
 
-		//return findSpriteByText(this.instaElement, "Close");
-		return this.instaElement.querySelector(".coreSpriteCloseLight").children[0];
+	savePostEl.parentElement.insertAdjacentElement("beforeend", bar);
+};
+instaChangeDetector.addEventListener("onPostAdded", e => injectDownloadButtonsIntoPost((e as any).detail.element));
+
+
+//preview ###
+
+const getMediaSrcOfPreviewElement = (previewEl: HTMLElement): Promise<MediaWriteInfo> => {
+	const linkElement = previewEl.querySelector("a");
+	if (linkElement === null){
+		return Promise.reject("link-element not found");
 	}
+	let postHref = linkElement.href;
 
-	add(obj){
+	return instaInfoUtil
+		.fetchMediaInfo(postHref)
+		.then(data => {
+			let src = data.mediaArray[0].src;
+			let username = data.username;
+			return { username, src };
+		}); 
+};
+const injectDownloadButtonsIntoPreview = (previewEl: HTMLElement) => {
+	const previewOverlay = createElementByHTML(`
+		<div style="
+				width: 100%;
+				position: absolute;
+				left: 0px;
+				bottom: 0px;
+				flex-direction: row;"
+		>
+		</div>
+	`);
+	const getMediaSrc = () => getMediaSrcOfPreviewElement(previewEl);
+	const diskDownloadButton = createDiskDownloadButton(getMediaSrc);
+	Object.assign(diskDownloadButton.style, {
+		width: "24px",
+		height: "24px",
+		padding: "5px"
+	});
+	previewOverlay.appendChild(diskDownloadButton);
 
-		super.add(obj);
+	previewEl.appendChild(previewOverlay);
+};
+instaChangeDetector.addEventListener("onPreviewAdded", e => injectDownloadButtonsIntoPreview((e as any).detail.element));
 
-		//let closeSprite = document.querySelector('*[class*="Close"');
-		var closeSprite = this.findCloseElement();
-		
-		let size = closeSprite.clientHeight;
-		let blueprintEl = closeSprite.parentElement.parentElement;
-		let margin = getComputedStyle(blueprintEl).margin;
-		obj.setStyle(size, "0px", margin);
-	}
 
-	getMediaSrc(){
-		let src = instaInfoUtil.getSrcOfStory(this.instaElement);
-		let username = instaInfoUtil.getUsernameByStoryUrl(window.location.href);
+//story ###
+const findCloseStoryElement = (storyEl: HTMLElement): HTMLElement => {
+	return storyEl.querySelector(".coreSpriteCloseLight").children[0] as HTMLElement;
+};
+const getMediaSrcOfStoryElement = (storyEl: HTMLElement): Promise<MediaWriteInfo> => {
+	try {
+		const src = instaInfoUtil.getSrcOfStory(storyEl);
+		const username = instaInfoUtil.getUsernameByStoryUrl(window.location.href);
 		return Promise.resolve({ src, username });
 	}
-
-	appendToInsta(instaElement){
-
-		let closeButton = this.findCloseElement();
-		if (closeButton == null){
-
-			console.warn("cannot find the close button. instagram may have changed it.");
-			return;
-		}
-
-		closeButton = closeButton.parentElement.parentElement;
-		closeButton.insertAdjacentElement("afterend", this.container);
+	catch (e){
+		return Promise.reject(e);
 	}
-
-	getChildrenContainer(){
-
-		return this.container;
-	}
-
-	diskDownloadStateChanged(newState){
-		const video = document.querySelector("video");
-		if (!video) return;
-		if (newState === "loading"){
-			video.pause();
-			const keepPaused = () => video.pause();
-			video.addEventListener("play", keepPaused);
-			this._keepPaused = keepPaused;
-		}
-		else if (newState === "success"){
-			video.removeEventListener("play", this._keepPaused);
-			video.play();
-		}
-	}
-}
-
-const onStoryAdded = (storyElement) => {
-	createBar(new StoryBar(), storyElement);
 };
+const getStoryDownloadElementStyle = (storyEl: HTMLElement): Partial<CSSStyleDeclaration> => {
+	const closeSprite = findCloseStoryElement(storyEl);
+	const size = closeSprite.clientHeight + "px";
+	const blueprintEl = closeSprite.parentElement.parentElement;
+	const margin = getComputedStyle(blueprintEl).getPropertyValue("margin");
+	return {
+		width: size,
+		height: size,
+		margin
+	};
+};
+const injectDownloadButtonsIntoStory = (storyEl: HTMLElement) => {
+	const closeEl = findCloseStoryElement(storyEl);
+	if (closeEl === null){
+		console.warn("cannot find the close button. instagram may have changed it.");
+		return;
+	}
 
-instaChangeDetector.addEventListener("onStoryAdded", e => onStoryAdded(e.detail.element));
+	const container = createElementByHTML(`
+		<div style="position: absolute; right: -56px; top: 56px;"></div>
+	`);
+	const getMediaSrc = () => getMediaSrcOfStoryElement(storyEl);
+	const diskDownloadButton = createDiskDownloadButton(getMediaSrc);
+	Object.assign(diskDownloadButton.style, getStoryDownloadElementStyle(storyEl));
+	container.appendChild(diskDownloadButton);
 
+	const closeButton = closeEl.parentElement.parentElement;
+	closeButton.insertAdjacentElement("afterend", container);
+};
+instaChangeDetector.addEventListener("onStoryAdded", e => injectDownloadButtonsIntoStory((e as any).detail.element));
 
 
 

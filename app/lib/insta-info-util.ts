@@ -1,6 +1,8 @@
-import { pageType, getCurrentPageType } from '../src/insta-navigation-observer';
+import { getCurrentPageType } from '../src/insta-navigation-observer';
 
 export type InstaElementType = "preview" | "post" | "story";
+
+export type VideoOrImageElement = HTMLVideoElement | HTMLImageElement;
 
 export const getElementTypesOnCurrentPage = (): InstaElementType[] => {
 	const curPageType = getCurrentPageType();
@@ -16,226 +18,40 @@ export const getElementTypesOnCurrentPage = (): InstaElementType[] => {
 	return [];
 };
 
-const getInstaHandle = (mainElement: HTMLElement): string => {
-	return mainElement
-		.querySelector("header")
-		.querySelector("a")
-		.getAttribute("href")
-		.split("/")
-		.join("");
+export const getHighestQualityFromSrcset = (srcset: string): string => {
+	const split = srcset.split(",");
+	let highestQualiString = split[split.length - 1];
+	const endIndex = highestQualiString.indexOf(" ") + 1;
+	highestQualiString = highestQualiString.substring(0, endIndex);
+	return highestQualiString.trim();
 };
 
-const getMediaName = (mediaSrc: string): string => {
-	const split = mediaSrc.split("/");
-	return split[split.length - 1];
+interface SrcSetEntry {
+	src: string,
+	config_width: number,
+	config_height: number
+};
+const getHighestQualityFromSrcsetArray = (srcsetArray: SrcSetEntry[]): string => {
+	let maxWidthIndex = 0;
+	let maxWidth = srcsetArray[0].config_width;
+	for (let i = 1; i < srcsetArray.length; i++){
+		const curWidth = srcsetArray[i].config_width;
+		if (curWidth > maxWidth){
+			maxWidthIndex = i;
+			maxWidth = curWidth;
+		}
+	}
+	return srcsetArray[maxWidthIndex].src;
 };
 
-const getDownloadMode = (mainElement: HTMLElement): "http" | "direct" => {
-	let videoElement = mainElement.querySelector("._l6uaz");
-	if (videoElement !== null && (videoElement as HTMLVideoElement).src.includes("blob")){ 
-		return "http";
-	}
-	else {
-		return "direct";   
-	}
+export const getOwnUsername = (): string => {
+	return /(?<="username":")[^"]*/.exec(document.body.innerHTML)[0];
 };
 
-//this is my strategy when trying to figure out the location of an info:
-//copy the desired info (like the name or the image url)
-//make a httprequest and search the responseText for the info
-//in the previous cases the info was in a json object and the page is initialized with it
-//then i copy the json text and make it an object in the conse
-//now i need the path to the desired info, and use this method
-function searchInObjectSub(obj, curPath, str){
-	let keys = Object.keys(obj);
-	for (let key of keys){
-		let val = obj[key];
-		if (val === undefined || val == null){
-
-			continue;
-		}
-		let type = typeof(val);
-		if (type == "string"){
-			
-			if (val == str){
-				
-				curPath.push(key);
-				return true;
-			}	
-		}
-		else if (type == "object"){
-			
-			let childTreeResult = searchInObjectSub(val, curPath, str);
-			if (childTreeResult){
-				
-				curPath.push(key);
-				return true;
-			}	
-		}
-	}
-	return false;
-}
-function searchInObject(obj: object, str: string){
-	let path = [];
-	searchInObjectSub(obj, path, str);
-	path.reverse();
-	return path;
-}
+const queryVideoOrImg = (parent: HTMLElement) => parent.querySelector("video, img[srcset]") as VideoOrImageElement;
 
 
-
-function extractImageSourcesFromText(text, fromIndex){
-
-	let startIndex = text.indexOf("display_resources", fromIndex);
-	let squareBracketOpenIndex = text.indexOf("[", startIndex);
-	let squareBracketCloseIndex = text.indexOf("]", squareBracketOpenIndex);
-	let imageSourceJsonString = text.substring(squareBracketOpenIndex, squareBracketCloseIndex + 1);
-	let imageSourceJson = JSON.parse(imageSourceJsonString);
-	return imageSourceJson;
-}
-
-function extractVideoUrl(text, fromIndex){
-		
-	let httpIndex = text.indexOf("http", fromIndex);
-	let stringEnd = ".mp4";
-	let mp4Index = text.indexOf(stringEnd, httpIndex);
-	return text.substring(httpIndex, mp4Index + stringEnd.length);
-}
-
-function extractMediaFromTextOld(text){
-
-	/*
-	var videoUrlStart = "video_url";
-	var imgUrlStart = "display_url";// "display_src";
-
-	var startOffset = 4;
-	var endOffset = 4;
-	if (text.includes(videoUrlStart)){
-
-		return stringUtil.extract(text, videoUrlStart, startOffset, ".mp4", endOffset);
-	}
-	else if (text.includes(imgUrlStart)){
-
-		return stringUtil.extract(text, imgUrlStart, startOffset, ".jpg", endOffset);
-	}
-	*/
-}
-
-function extractMediaFromText(text){
-
-	//the key of the object with relevant information
-	//shortcode_media
-	let baseIndex = text.indexOf("shortcode_media");
-
-	let postType = "unknown";
-	let mediaArray = [];
-
-	let edgeChildrenCarIndex = text.indexOf("edge_sidecar_to_children", baseIndex);
-	if (edgeChildrenCarIndex > 0){
-
-		postType = "collection";
-
-	}
-	else {
-
-		let videoUrlIndex = text.indexOf("video_url", baseIndex);
-		if (videoUrlIndex > 0){
-
-			postType = "video";
-			let videoUrl = extractVideoUrl(text, videoUrlIndex);
-			mediaArray.push({
-				type: "video",
-				src: videoUrl
-			});
-		}
-		else {
-
-			postType = "image";
-			let imageSources = extractImageSourcesFromText(text, baseIndex);
-			mediaArray.push({
-				type: "image",
-				srcset: imageSources
-			});
-		}
-	}
-
-	let mediaData = {
-
-		postType: postType,
-		mediaArray: mediaArray
-	};
-	return mediaData;
-}
-
-function extractMediaFromXml(xml){
-
-	let metaElement = null;
-	let mediaType = "unknown";
-
-	let mediaTypes = ["video", "image"];
-	let selectors = ['meta[property="og:video"]', 'meta[property="og:image"]'];
-	for (let a = 0; a < selectors.length; a++){
-
-		metaElement = xml.querySelector(selectors[a]);
-		if (metaElement != null){
-
-			mediaType = mediaTypes[a];
-			break;
-		}
-	}
-
-	if (metaElement == null){
-
-		return null;
-	}
-
-	let mediaSrc = metaElement.getAttribute("content");
-	return {
-		src: mediaSrc,
-		type: mediaType
-	};
-}
-
-function extractInstaHandleFromXml(xml){
-
-	let handle = "unknown";
-
-	//return xml.querySelector("._2g7d5").title;
-
-	let handleEl = xml.querySelector('meta[content*="(@"]');
-	if (handleEl != null){
-
-		var handleContent = handleEl.content;
-		var startIndex = handleContent.indexOf("@") + 1;
-		handle = "";
-		for (var a = 0; a < 1000; a++){
-
-			var index = startIndex + a;
-			var char = handleContent.charAt(index);
-			if (char == ")"){
-
-				break;
-			}
-			
-			handle += char;
-		}
-	}
-	
-	return handle;
-
-	
-	/*
-	let handleEl = xml.querySelector("._iadoq");
-	if (handleEl != null){
-
-		handle = handleEl.href;
-	}
-
-	return handle;
-	*/
-}
-
-
+//fetching ###
 
 export interface VideoInfo {
 	type: "video",
@@ -244,7 +60,8 @@ export interface VideoInfo {
 };
 export interface ImgInfo {
 	type: "image", 
-	srcset: string,
+	srcset: SrcSetEntry[],
+	src: string,
 	previewSrc: string
 };
 export type VideoOrImgInfo = VideoInfo | ImgInfo;
@@ -283,9 +100,12 @@ const getMediaInfoFromResponseText = (responseText: string): MediaInfo => {
 			} as Partial<VideoInfo>)
 		}
 		else {
+			const srcset = subMed.display_resources as SrcSetEntry[];
+			const highQualitySrc = getHighestQualityFromSrcsetArray(srcset);
 			Object.assign(subObj, {
 				type: "image",
-				srcset: subMed.display_resources
+				srcset, 
+				src: highQualitySrc
 			} as Partial<ImgInfo>)
 		}
 
@@ -302,7 +122,7 @@ const getMediaInfoFromResponseText = (responseText: string): MediaInfo => {
 		username
 	} as MediaInfo;
 };
-export const getMediaInfo = (url: string): Promise<MediaInfo> => {
+export const fetchMediaInfo = (url: string): Promise<MediaInfo> => {
 	return new Promise((resolve, reject) => {
 		const request = new XMLHttpRequest();
 	
@@ -325,7 +145,10 @@ export const getMediaInfo = (url: string): Promise<MediaInfo> => {
 	});
 };
 
-export const getPreviewSrcOfPost = (postElement) => {
+
+//post ###
+
+export const getPreviewSrcOfPost = (postElement: HTMLElement): string => {
 	const queries = ["video[poster]", "img[srcset]"];
 	const previewAttr = ["poster", "src"];
 	for (let a = 0; a < previewAttr.length; a++){
@@ -335,10 +158,7 @@ export const getPreviewSrcOfPost = (postElement) => {
 			return previewSrc;
 		}
 	}
-
-	return null;
 };
-
 export const getHrefOfPost = (postElement: HTMLElement): string => {
 	const linkElement = postElement.querySelector('a[href*="/p/"') as HTMLLinkElement;
 	const href = linkElement[0].href;
@@ -346,14 +166,55 @@ export const getHrefOfPost = (postElement: HTMLElement): string => {
 	const endIndex = href.indexOf("/", startIndex);
 	return href.substring(0, endIndex + 1);
 };
-
-const getHighestQualityFromSrcset = (srcset: string): string => {
-	const split = srcset.split(",");
-	let highestQualiString = split[split.length - 1];
-	const endIndex = highestQualiString.indexOf(" ") + 1;
-	highestQualiString = highestQualiString.substring(0, endIndex);
-	return highestQualiString.trim();
+export const findMediaElementInPost = (postElement: HTMLElement): VideoOrImageElement => {
+	return queryVideoOrImg(postElement);
 };
+const findUsernameInPost = (postElement: HTMLElement): string => {
+	const profileLink = (postElement.querySelector("header a") as HTMLLinkElement).href;
+	return /(?<=\.com\/).*(?=\/)/.exec(profileLink)[0];
+};
+const findTypeOfPost = (postElement: HTMLElement): ("video" | "image" | "collection") => {
+	if (postElement.querySelector("ul img[srcset], ul video") !== null) return "collection";
+	const mediaElement = findMediaElementInPost(postElement);
+	return mediaElement.tagName === "VIDEO" ? "video" : "image";
+};
+const extractMediaFromElement = (mediaElement: VideoOrImageElement): { type: "video" | "image", src: string } => {
+	const type = mediaElement.tagName === "VIDEO" ? "video" : "image";
+	const src = type === "video" ? mediaElement.src : getHighestQualityFromSrcset((mediaElement as HTMLImageElement).srcset);
+	return { type, src };
+};
+const getCollectionMediaByPostElement = (postElement: HTMLElement) => {
+	const list = postElement.querySelector("ul");
+	//the actual first item at index 0 is some kind of marker with width 1
+	const firstItem = list.children[1];
+	const listItemWidth = parseFloat(getComputedStyle(firstItem).getPropertyValue("width"));
+	const positionReferenceElement = list.parentElement.parentElement;
+	const visibleX = positionReferenceElement.getBoundingClientRect().x;
+
+	for (let i = 1; i < list.children.length; i++) {
+		const listItem = list.children[i];
+		const curItemX = listItem.getBoundingClientRect().x;
+		if (Math.abs(visibleX - curItemX) < listItemWidth / 2) {
+			const mediaEl = queryVideoOrImg(listItem as HTMLElement);
+			return extractMediaFromElement(mediaEl);
+		}
+	}
+};
+const getSingleMediaInfoByPostElement = (postElement: HTMLElement) => {
+	return extractMediaFromElement(findMediaElementInPost(postElement));
+};
+export const getMediaInfoByHtml = (postElement: HTMLElement) => {
+	const username = findUsernameInPost(postElement);
+	const postType = findTypeOfPost(postElement);
+	const media = postType === "collection" ? getCollectionMediaByPostElement(postElement) : getSingleMediaInfoByPostElement(postElement);
+	return {
+		username, postType, media
+	};
+};
+
+
+
+//story ###
 
 export const getSrcOfStory = (storyElement: HTMLElement): string => {
 	const video = storyElement.querySelector("video");
@@ -382,81 +243,9 @@ export const getSrcOfStory = (storyElement: HTMLElement): string => {
 	}
 	return null;
 };
-
 export const getUsernameByStoryUrl = (storyUrl: string): string => {
 	return /(?<=stories\/).*(?=\/)/.exec(storyUrl)[0];
 };
 
-export const getPostMediaElement = (postElement) => {
-	return postElement.querySelector("video, img[srcset]");
-};
 
-const getUsernameByPostElement = (postElement) => {
-	const profileLink = postElement.querySelector("header a").href;
-	const usernameRegex = /(?<=\.com\/).*(?=\/)/;
-	const regexResult = usernameRegex.exec(profileLink);
-	return regexResult.length === 0 ? undefined : regexResult[0];
-};
-const getPostTypeByPostElement = (postElement) => {
-	//first test for collection
-	if (postElement.querySelector("ul img[srcset], ul video") !== null){
-		return "collection";
-	}
-	const mediaElement = getPostMediaElement(postElement);
-	return mediaElement.tagName === "VIDEO" ? "video" : "image";
-};
-const extractMediaFromElement = (mediaElement) => {
-	const type = mediaElement.tagName === "VIDEO" ? "video" : "image";
-	return {
-		type,
-		...(type === "video" ? { src: mediaElement.src } : { src: getHighestQualityFromSrcset(mediaElement.srcset) })
-	}
-};
-const getCollectionMediaByPostElement = (postElement) => {
-	const list = postElement.querySelector("ul");
-	//the actual first item at index 0 is some kind of marker with width 1
-	const firstItem = list.children[1];
-	const listItemWidth = parseFloat(getComputedStyle(firstItem).getPropertyValue("width"));
-	const positionReferenceElement = list.parentElement.parentElement;
-	const visibleX = positionReferenceElement.getBoundingClientRect().x;
 
-	for (let i = 1; i < list.children.length; i++){
-		const listItem = list.children[i];
-		const curItemX = listItem.getBoundingClientRect().x;
-		if (Math.abs(visibleX - curItemX) < listItemWidth / 2){
-			const mediaEl = listItem.querySelector("img[srcset], video");
-			return extractMediaFromElement(mediaEl);
-		}
-	}
-
-	return;
-};
-const getSingleMediaInfoByPostElement = (postElement) => extractMediaFromElement(postElement.querySelector("img[srcset], video"))
-export const getMediaInfoByHtml = (postElement) => {
-	const username = getUsernameByPostElement(postElement);
-	const postType = getPostTypeByPostElement(postElement);
-	const media = postType === "collection" ? getCollectionMediaByPostElement(postElement) : getSingleMediaInfoByPostElement(postElement);
-	return {
-		username, postType, media
-	};
-};
-
-function getStoryItemsByNavigationElement(navigationElement){
-	//$0.__reactInternalInstance$o18wyingh6h.return.return.return.stateNode.props.items
-	const keys = Reflect.ownKeys(navigationElement) as string[];
-	const reactInstanceKey = keys.find(val => val.includes("Instance"));
-	let currentReturn = navigationElement[reactInstanceKey];
-	for (let a = 0; a < 1000; a++){
-		if (currentReturn.stateNode.nodeName !== undefined){
-			currentReturn = currentReturn.return;
-		}
-		else {
-			break;
-		}
-	}
-	return currentReturn.stateNode.props.items;
-}
-
-export const getOwnUsername = (): string => {
-	return /(?<="username":")[^"]*/.exec(document.body.innerHTML)[0];
-};

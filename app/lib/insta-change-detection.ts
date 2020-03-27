@@ -3,7 +3,7 @@
 
 import { 
 	InstaElementType,
-	getPostMediaElement, 
+	findMediaElementInPost, 
 	getElementTypesOnCurrentPage,
 } from './insta-info-util';
 
@@ -96,7 +96,7 @@ function addOnPostSrcChanged(postElement, callback){
 	return;
 	if (!postChangeCallbackData.has(postElement)){
 
-		let mediaElement = getPostMediaElement(postElement);
+		let mediaElement = findMediaElementInPost(postElement);
 		let data = {
 			callbacks: [],
 			currentMediaElement: mediaElement
@@ -125,7 +125,7 @@ function onPostMutation(mutations){
 	return;
 	let postData = postChangeCallbackData.get(this);
 	let oldMediaElement = postData.currentMediaElement;
-	let newMediaElement = getPostMediaElement(this);
+	let newMediaElement = findMediaElementInPost(this);
 	if (newMediaElement.src != oldMediaElement.src){
 
 		postData.callbacks.forEach(callback => callback());

@@ -5,9 +5,12 @@ interface DiskDownloadArgs {
 	fileName: string
 };
 
-type DiskDownloadCallback = (arg: any) => void;
+type DownloadProgressCallback = (progress: number) => void;
 
-export const download = (data: DiskDownloadArgs, callback: DiskDownloadCallback) => {
+export const download = (
+	data: DiskDownloadArgs, 
+	progressCallback: DownloadProgressCallback): Promise<unknown> => {
+
 	const messageData = {
 		requests: [
 			{
@@ -18,16 +21,44 @@ export const download = (data: DiskDownloadArgs, callback: DiskDownloadCallback)
 		time: window.performance.now()
 	};
 
+	let _resolve: Function = null; 
+	let _reject: Function = null;
+	const downloadPromise = new Promise((res, rej) => {
+		_resolve = res;
+		_reject = rej;
+	});
+
 	//long lived connection
 	const port = chrome.runtime.connect({ 
 		name: "disk-downloader" 
 	});
-	port.onMessage.addListener((msg, sender) => {
-		const responseType = msg.data[0].type;
+	port.onMessage.addListener((answer, sender) => {
+		if (answer.origin === "native host disconnect") {
+			_reject(answer.data);
+			return;
+		}
+		else if (answer.origin === "native host response") {
+			const resultEntry = answer.data[0];
+			const resultEntryType = resultEntry.type;
+			if (resultEntryType === "success") {
+				_resolve();
+				return;
+			}
+			else if (resultEntryType === "error") {
+				_reject(resultEntry.data);
+				return;
+			}
+			else if (resultEntryType === "progress"){
+				progressCallback(resultEntry.data.progress);
+			}
+		}
+
+		const responseType = answer.data[0].type;
 		if (responseType === "success"){
 			port.disconnect();
 		}
-		callback(msg);
 	});
 	port.postMessage(messageData);
+
+	return downloadPromise;
 };
