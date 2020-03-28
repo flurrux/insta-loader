@@ -27,10 +27,17 @@
 </head>
 
 <body>
-	<label>
+	<div>
 		download directory:
 		<input id="download-directory-input" type="text" />
-	</label>
+	</div>
+	<div>
+		download method: 
+		<select id="download-method">
+			<option value="native">native</option>
+			<option value="chrome-background">chrome-background</option>
+		</select>
+	</div>
 	<div>
 		<h4>rules:</h4>
 		<div id="rule-list"></div>

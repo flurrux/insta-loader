@@ -14,6 +14,7 @@
 	"background": {
 		"scripts": [
 			"disk-download-background.js",
+			"chrome-download-background.js",
 			"notifications-background.js"
 		],
 		"persistent": false
@@ -31,6 +32,7 @@
 		"nativeMessaging",
 		"tabs",
 		"notifications",
+		"downloads",
 		"*://www.instagram.com/*"
 	],
 
