@@ -5,7 +5,6 @@ interface NotificationArgs {
 	message: string
 };
 
-const chrome = (window as any).chrome;
 chrome.runtime.onMessage.addListener(
 	function (request: any, sender: any, sendResponse) {
 		if (request.type !== "show-notification") return;

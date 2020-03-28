@@ -10,8 +10,6 @@ const iconNames = {
 	fail: "error"
 };
 
-const chrome = (window as any).chrome;
-
 export class DownloadFeedbackButton {
 	
 	_downloadState: DownloadState = "initial";

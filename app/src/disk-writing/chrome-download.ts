@@ -1,59 +1,49 @@
-import { DownloadRequest } from "./chrome-download-types";
+import { DownloadRequest, DownloadResponse, DownloadErrorResponse, DownloadStateRequest } from "./chrome-download-types";
 
 type ProgressCallback = (progress: number) => void;
 
 export const download = (
-	data: DownloadRequest,
-	progressCallback: ProgressCallback): Promise<unknown> => {
+	data: { filePath: string, url: string },
+	progressCallback: ProgressCallback): Promise<void> => {
 
-	const messageData = {
-		requests: [
-			{
-				action: "write media by link",
-				data
-			}
-		],
-		time: window.performance.now()
-	};
+	return new Promise((resolve, reject) => {
+		const port = chrome.runtime.connect({
+			name: "chrome-downloader"
+		});
 
-	let _resolve: Function = null;
-	let _reject: Function = null;
-	const downloadPromise = new Promise((res, rej) => {
-		_resolve = res;
-		_reject = rej;
-	});
-
-	//long lived connection
-	const port = chrome.runtime.connect({
-		name: "disk-downloader"
-	});
-	port.onMessage.addListener((answer, sender) => {
-		if (answer.origin === "native host disconnect") {
-			_reject(answer.data);
-			return;
-		}
-		else if (answer.origin === "native host response") {
-			const resultEntry = answer.data[0];
-			const resultEntryType = resultEntry.type;
-			if (resultEntryType === "success") {
-				_resolve();
+		let downloadId = null;
+		const requestState = () => {
+			port.postMessage({
+				type: "request-state",
+				id: downloadId
+			} as DownloadStateRequest);
+		};
+		port.onMessage.addListener((answer: DownloadResponse) => {
+			if (answer.type === "download-id"){
+				downloadId = answer.id;
+				requestState();
 				return;
 			}
-			else if (resultEntryType === "error") {
-				_reject(resultEntry.data);
+			if (answer.type === "error"){
+				reject(answer.error);
+				port.disconnect();
 				return;
 			}
-			else if (resultEntryType === "progress") {
-				progressCallback(resultEntry.data.progress);
+			if (answer.type === "success") {
+				resolve();
+				port.disconnect();
+				return;
 			}
-		}
-
-		const responseType = answer.data[0].type;
-		if (responseType === "success") {
-			port.disconnect();
-		}
+			if (answer.type === "progress"){
+				progressCallback(answer.progress.progress);
+				requestState();
+				return;
+			}
+		});
+		port.postMessage({
+			type: "request-download",
+			filePath: data.filePath,
+			url: data.url
+		} as DownloadRequest);
 	});
-	port.postMessage(messageData);
-
-	return downloadPromise;
 };

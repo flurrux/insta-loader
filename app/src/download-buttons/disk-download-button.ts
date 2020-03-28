@@ -2,9 +2,9 @@ import { getOwnUsername } from "../insta-info-util";
 import { createFileNameByUrl } from "../../lib/url-to-filename";
 import { getFolderPath } from "../disk-writing/lookup-write-path";
 import { download as storeOnDisk } from '../disk-writing/disk-download';
+import { download as downloadByChrome } from '../disk-writing/chrome-download';
 import { DownloadFeedbackButton } from "./download-feedback-button";
-
-const chrome = (window as any).chrome;
+import { joinPaths } from '../../lib/path-util';
 
 export interface MediaWriteInfo {
 	src: string,
@@ -26,20 +26,28 @@ const downloadFileIndirectly = async (
 		const mediaSrc = mediaInfo.src;
 		const fileName = createFileNameByUrl(mediaSrc);
 
-		const folderPath = await getFolderPath({
-			mediaSrc,
-			userName: mediaInfo.username,
-			ownUserName
-		});
-
-		await storeOnDisk(
-			{
-				link: mediaSrc,
-				folderPath,
-				fileName
-			},
-			loadingCallback
-		);
+		const downloadNatively = false;
+		if (downloadNatively){
+			const folderPath = await getFolderPath({
+				mediaSrc,
+				userName: mediaInfo.username,
+				ownUserName
+			});
+			await storeOnDisk(
+				{
+					link: mediaSrc,
+					folderPath,
+					fileName
+				},
+				loadingCallback
+			);
+		}
+		else {
+			await downloadByChrome({
+				filePath: `Instagram/${mediaInfo.username}/${fileName}`,
+				url: mediaSrc
+			}, loadingCallback);
+		}
 	}
 	catch (error) {
 		console.error(error);

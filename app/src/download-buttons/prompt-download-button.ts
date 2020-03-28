@@ -3,8 +3,6 @@ import { createFileNameByUrl } from "../../lib/url-to-filename";
 import { downloadResource } from "../../lib/prompt-download-util";
 import { createElementByHTML } from "../../lib/html-util";
 
-const chrome = (window as any).chrome;
-
 const getDownloadIconSrc = (iconAppendix: string): string => {
 	return chrome.extension.getURL(`icons/download-icon-${iconAppendix}.png`);
 };

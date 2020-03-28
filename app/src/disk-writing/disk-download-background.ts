@@ -31,8 +31,6 @@ interface ResponseToForeground {
 };
 
 
-const chrome = (window as any).chrome;
-
 const nativeHostName = "insta_loader_host";
 
 const connectToNativeHost = (request, sender, responseFunc) => {
