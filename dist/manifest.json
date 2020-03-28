@@ -1,0 +1,46 @@
+{
+	"manifest_version": 2,
+
+	"name": "insta-loader",
+	"description": "download buttons for instagram media.",
+	"version": "1.1",
+
+	"icons": { 
+		"16": "icons/insta-loader-icon-16.png",
+		"48": "icons/insta-loader-icon-48.png",
+		"128": "icons/insta-loader-icon-128.png" 
+	},
+
+	"background": {
+		"scripts": [
+			"disk-download-background.js",
+			"notifications-background.js"
+		],
+		"persistent": false
+	},
+
+	"content_scripts": [
+		{
+			"matches": ["*://www.instagram.com/*"],
+			"js": ["index.js"]
+		}
+	],
+
+	"permissions": [
+		"storage",
+		"nativeMessaging",
+		"tabs",
+		"notifications",
+		"*://www.instagram.com/*"
+	],
+
+	"options_ui": {
+		"page": "options/options.html",
+		"chrome_style": true
+	},
+
+	"web_accessible_resources": [
+		"icons/*.png",
+		"src/*", "lib/*"
+	]
+}

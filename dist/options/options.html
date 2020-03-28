@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>InstaLoader Options</title>
+<style>
+	body { 
+		padding: 10px; 
+	}
+	#button-wrapper {
+		width: 100%;
+		display: flex;
+		justify-content: center;
+	}
+	#add-rule-button {
+		margin: 20px;
+		min-width: 100px;
+	}
+	#rule-list > * {
+		padding-top: 20px;
+		padding-bottom: 20px;
+		border-bottom: 2px solid gray;
+	}
+	rule-element {
+		display: block;
+	}
+</style>
+</head>
+
+<body>
+	<label>
+		download directory:
+		<input id="download-directory-input" type="text" />
+	</label>
+	<div>
+		<h4>rules:</h4>
+		<div id="rule-list"></div>
+		<div id="button-wrapper">
+			<button id="add-rule-button">+</button>
+		</div>
+	</div>
+
+	<script src="options.js"></script>
+</body>
+</html>
