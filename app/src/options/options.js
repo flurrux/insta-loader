@@ -192,12 +192,18 @@ function saveRules(){
 function restoreOptions() {
     chrome.storage.sync.get(
         {
-            baseDownloadDirectory: "", 
+			baseDownloadDirectory: "",
+			downloadMethod: "chrome-background", 
             directoryRules: []
         }, 
         (items) => {
             document.querySelector("#download-directory-input").value = items.baseDownloadDirectory;
-        
+		
+			document.querySelector("#download-method").selectedIndex = [
+				"native",
+				"chrome-background"
+			].indexOf(items.downloadMethod);
+
             const ruleList = document.querySelector("#rule-list");
             for (let rule of items.directoryRules){
                 const ruleElement = document.createElement("rule-element");
@@ -214,6 +220,17 @@ function restoreOptions() {
     );
 }
 document.addEventListener('DOMContentLoaded', restoreOptions);
+
+document.querySelector("#download-method").addEventListener("input", (e) => {
+	const selectEl = e.srcElement;
+	const selectedMethod = selectEl[selectEl.selectedIndex].value;
+	chrome.storage.sync.set(
+		{ 
+			downloadMethod: selectedMethod 
+		},
+		() => console.log("saved")
+	)
+});
 
 //baseDirectory ###
 document.querySelector("#download-directory-input").addEventListener("change", () => {

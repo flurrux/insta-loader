@@ -1,16 +1,64 @@
-import { getOwnUsername } from "../insta-info-util";
 import { createFileNameByUrl } from "../../lib/url-to-filename";
-import { getFolderPath } from "../disk-writing/lookup-write-path";
-import { download as storeOnDisk } from '../disk-writing/disk-download';
 import { download as downloadByChrome } from '../disk-writing/chrome-download';
+import { download as storeOnDisk } from '../disk-writing/disk-download';
+import { getFolderPath } from "../disk-writing/lookup-write-path";
+import { getOwnUsername } from "../insta-info-util";
 import { DownloadFeedbackButton } from "./download-feedback-button";
-import { joinPaths } from '../../lib/path-util';
+
 
 export interface MediaWriteInfo {
 	src: string,
 	username: string
 };
 export type LoadingCallback = (progress: number) => void;
+
+type DownloadMethod = "native" | "chrome-background";
+const defaultDownloadMethod: DownloadMethod = "chrome-background";
+
+const getDownloadMethod = (): Promise<DownloadMethod> => {
+	return new Promise((resolve, reject) => {
+		chrome.storage.sync.get(
+			{ downloadMethod: defaultDownloadMethod },
+			(items: { downloadMethod: DownloadMethod }) => {
+				if (chrome.runtime.lastError){
+					reject(chrome.runtime.lastError.message);
+					return;
+				}
+				resolve(items.downloadMethod);
+			}
+		);
+	});
+};
+
+const downloadInBackground = async (mediaInfo: MediaWriteInfo, loadingCallback: LoadingCallback): Promise<void> => {
+	const downloadMethod = await getDownloadMethod();
+	const mediaSrc = mediaInfo.src;
+	const fileName = createFileNameByUrl(mediaSrc);
+
+	if (downloadMethod === "native") {
+		const ownUserName = getOwnUsername();
+		const folderPath = await getFolderPath({
+			mediaSrc,
+			userName: mediaInfo.username,
+			ownUserName
+		});
+		await storeOnDisk(
+			{
+				link: mediaSrc,
+				folderPath,
+				fileName
+			},
+			loadingCallback
+		);
+	}
+	else if (downloadMethod === "chrome-background"){
+		await downloadByChrome({
+			filePath: `Instagram/${mediaInfo.username}/${fileName}`,
+			url: mediaSrc
+		}, loadingCallback);
+	}
+};
+
 export interface DiskDownloadButtonOptions {
 	onDownloadStart: () => void,
 	onDownloadEnd: () => void
@@ -21,33 +69,8 @@ const downloadFileIndirectly = async (
 
 	let mediaInfo: MediaWriteInfo = null;
 	try {
-		const ownUserName = getOwnUsername();
 		mediaInfo = await getMediaInfo();
-		const mediaSrc = mediaInfo.src;
-		const fileName = createFileNameByUrl(mediaSrc);
-
-		const downloadNatively = false;
-		if (downloadNatively){
-			const folderPath = await getFolderPath({
-				mediaSrc,
-				userName: mediaInfo.username,
-				ownUserName
-			});
-			await storeOnDisk(
-				{
-					link: mediaSrc,
-					folderPath,
-					fileName
-				},
-				loadingCallback
-			);
-		}
-		else {
-			await downloadByChrome({
-				filePath: `Instagram/${mediaInfo.username}/${fileName}`,
-				url: mediaSrc
-			}, loadingCallback);
-		}
+		await downloadInBackground(mediaInfo, loadingCallback);		
 	}
 	catch (error) {
 		console.error(error);
