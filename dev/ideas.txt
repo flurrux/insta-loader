@@ -1,7 +1,8 @@
 
 todo ###
 
-- rewrite the whole thing with lit-html/lit-element and modules
+- update readme
+- add /dist to git
 - shortcut for disk-download
 - show if an image is already saved
 - button to open folder of model
@@ -37,5 +38,6 @@ persistence and navigation
 - bug: in a collection when an item is downloaded, the success icon appears, then the next-arrow 
 is clicked and the next slide is shown which might not be downloaded, but the success icon remains.
 this happens because the icons are not updated when another slide is shown.
+the same happens when a post is opened in an overlay, and then the "next"-button is pressed
 - issue: instagram profiles can change their name and still be the same url. in that case, 
 there can be two download-folders for the same profile. is this good or bad behaviour?

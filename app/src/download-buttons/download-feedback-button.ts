@@ -1,4 +1,4 @@
-import { getElementTypesOnCurrentPage } from '../lib/insta-info-util';
+import { getElementTypesOnCurrentPage } from '../insta-info-util';
 
 
 type DownloadState = "initial" | "loading" | "success" | "fail";
