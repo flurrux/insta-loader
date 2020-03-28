@@ -12,7 +12,7 @@ a chrome extension to quickly download any media from instagram.com.
 
   
 
-- download this repository to a suitable directory
+- download the "dist" folder to a suitable directory
 
 - go to chrome://extensions/
 
@@ -20,7 +20,7 @@ a chrome extension to quickly download any media from instagram.com.
 
 - click "load unpacked"
 
-- pick the "/app" folder from the downloaded repository
+- pick the "dist" folder from the downloaded repository
 
 
 ### to use direct download to disk, do additionally:
