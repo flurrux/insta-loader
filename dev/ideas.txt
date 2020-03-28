@@ -1,9 +1,8 @@
 
 todo ###
 
-- update readme
-- add /dist to git
 - shortcut for disk-download
+- implement chrome.download
 - show if an image is already saved
 - button to open folder of model
 - button to jump to saved image

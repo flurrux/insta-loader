@@ -31,6 +31,7 @@
 		"nativeMessaging",
 		"tabs",
 		"notifications",
+		"downloads",
 		"*://www.instagram.com/*"
 	],
 
