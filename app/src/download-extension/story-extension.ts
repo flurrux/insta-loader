@@ -1,4 +1,4 @@
-import { MediaWriteInfo, createDiskDownloadButton } from "../download-buttons/disk-download-button";
+import { MediaWriteInfo, createDiskDownloadButton, DiskDownloadButtonOptions } from "../download-buttons/disk-download-button";
 import { getSrcOfStory, getUsernameByStoryUrl } from "../insta-info-util";
 import { createElementByHTML } from "../../lib/html-util";
 
@@ -65,7 +65,13 @@ export const injectDownloadButtonsIntoStory = (storyEl: HTMLElement) => {
 		<div style="position: absolute; right: -56px; top: 56px;"></div>
 	`);
 
-	const pauseHandleDownloadOptions = (() => {
+	const pauseHandleDownloadOptions = ((): DiskDownloadButtonOptions => {
+		if (!document.querySelector("video")){
+			return {
+				onDownloadStart: () => {},
+				onDownloadEnd: () => {}
+			};
+		}
 		let pauseHandle: StoryPauseHandle = null;
 		return {
 			onDownloadStart: () => {
