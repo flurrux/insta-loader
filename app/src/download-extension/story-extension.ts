@@ -66,19 +66,18 @@ export const injectDownloadButtonsIntoStory = (storyEl: HTMLElement) => {
 	`);
 
 	const pauseHandleDownloadOptions = ((): DiskDownloadButtonOptions => {
-		if (!document.querySelector("video")){
-			return {
-				onDownloadStart: () => {},
-				onDownloadEnd: () => {}
-			};
-		}
 		let pauseHandle: StoryPauseHandle = null;
 		return {
 			onDownloadStart: () => {
-				pauseHandle = createStoryPauseHandle();
-				pauseHandle.keepPaused();
+				if (document.querySelector("video")){
+					pauseHandle = createStoryPauseHandle();
+					pauseHandle.keepPaused();
+				}
 			},
-			onDownloadEnd: () => pauseHandle.continue()
+			onDownloadEnd: () => {
+				if (!pauseHandle) return;
+				pauseHandle.continue();
+			}
 		};
 	})();
 	const diskDownloadButton = createDiskDownloadButton(
