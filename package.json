@@ -19,6 +19,6 @@
   "devDependencies": {
     "@types/chrome": "0.0.103",
     "cssnano": "^4.1.10",
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.3"
   }
 }

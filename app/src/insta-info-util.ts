@@ -244,7 +244,7 @@ export const getSrcOfStory = (storyElement: HTMLElement): string => {
 	return null;
 };
 export const getUsernameByStoryUrl = (storyUrl: string): string => {
-	return /(?<=stories\/).*(?=\/)/.exec(storyUrl)[0];
+	return /(?<=stories\/).*?(?=\/)/.exec(storyUrl)[0];
 };
 export const getUsernameByStoryElement = (storyElement: HTMLElement) => {
 	return Array.from(
