@@ -1,7 +1,10 @@
 import { MediaWriteInfo, createDiskDownloadButton } from "../download-buttons/disk-download-button";
-import { getPreviewSrcOfPost, getMediaInfoByHtml } from "../insta-info-util";
+import { getPreviewSrcOfPost, getMediaInfoByHtml, findStoryElement } from "../insta-info-util";
 import { createElementByHTML } from "../../lib/html-util";
 
+const findInteractionSection = (postElement: HTMLElement): HTMLElement => {
+	return postElement.querySelector("section");
+};
 const findSavePostElement = (postElement: HTMLElement): Element => {
 	const section = postElement.querySelector("section");
 	if (!section) {
@@ -37,21 +40,23 @@ const getMediaSrcOfPostElement = (postElement: HTMLElement): Promise<MediaWriteI
 	} as MediaWriteInfo);
 };
 export const injectDownloadButtonsIntoPost = (postElement: HTMLElement) => {
-	let saveElement = findSavePostElement(postElement);
-	if (saveElement === null) {
-		console.warn("save-sprite not found");
-		return;
-	}
-	let savePostEl = saveElement.parentElement.parentElement;
-	savePostEl.style.marginRight = "0px";
+	const sectionEl = findInteractionSection(postElement);
 
 	const bar = createElementByHTML(`
-		<div style="display: flex; flex-direction: row;"></div>
+		<div 
+			style="
+				display: flex; 
+				flex-direction: row;
+				padding: 8px;
+				padding-right: 0px;
+				margin-left: 10px;
+			"
+		></div>
 	`);
 	const getMediaSrc = () => getMediaSrcOfPostElement(postElement);
 	const downloadButton = createDiskDownloadButton(getMediaSrc);
 	applyPostDownloadElementStyle(postElement, downloadButton);
 	bar.appendChild(downloadButton);
 
-	savePostEl.parentElement.insertAdjacentElement("beforeend", bar);
+	sectionEl.insertAdjacentElement("beforeend", bar);
 };
