@@ -100,7 +100,7 @@ export const createDiskDownloadButton = (
 
 	const buttonWrapper = new DownloadFeedbackButton();
 	const buttonEl = buttonWrapper.getElement();
-	buttonEl.addEventListener("mousedown", async (e) => {
+	const startDownload = async () => {
 		buttonWrapper.downloadState = "loading";
 		const updateProgress = (progress: number) => buttonWrapper.loadingProgress = progress;
 		options.onDownloadStart();
@@ -112,6 +112,8 @@ export const createDiskDownloadButton = (
 			buttonWrapper.downloadState = "fail";
 		}
 		options.onDownloadEnd();
-	});
+	};
+	buttonEl.addEventListener("download-request", startDownload);
+	buttonEl.addEventListener("mousedown", startDownload);
 	return buttonEl;
 };

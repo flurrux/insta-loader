@@ -146,6 +146,16 @@ export const fetchMediaInfo = (url: string): Promise<MediaInfo> => {
 };
 
 
+//main-feed ###
+
+export function findMainFeedPostsContainer(): HTMLDivElement {
+	return document.querySelector("article").parentElement as HTMLDivElement
+}
+export function findMainFeedPosts(): HTMLElement[] {
+	return Array.from(findMainFeedPostsContainer().children) as HTMLElement[]
+}
+
+
 //post ###
 
 export const getPreviewSrcOfPost = (postElement: HTMLElement): string => {

@@ -1,4 +1,5 @@
-﻿
+﻿import { findMainFeedPosts } from "./insta-info-util";
+
 const scrollTolerance = 30;
 
 function calculateWindowBottomToDownloadBottomDifference(postEl: HTMLElement): number {
@@ -15,18 +16,11 @@ function isPrevPost(postEl: HTMLElement, index: number): boolean {
 	return calculateWindowBottomToDownloadBottomDifference(postEl) > scrollTolerance
 }
 
-function findPostContainer(): HTMLDivElement {
-	return document.querySelector("article").parentElement as HTMLDivElement
-}
-function getPosts(): HTMLElement[] {
-	return Array.from(findPostContainer().children) as HTMLElement[]
-}
-
 function findNextPost(): HTMLElement {
-	return getPosts().find(isNextPost)
+	return findMainFeedPosts().find(isNextPost)
 }
 function findPrevPost(): HTMLElement {
-	return getPosts().reverse().find(isPrevPost)
+	return findMainFeedPosts().reverse().find(isPrevPost)
 }
 
 function scrollToPost(findFunc: () => HTMLElement){

@@ -39,6 +39,7 @@ export class DownloadFeedbackButton {
 
 	constructor(){
 		this._rootElement = document.createElement("a");
+		this._rootElement.classList.add("download-button");
 		Object.assign(this._rootElement.style, {
 			width: "fit-content",
 			height: "fit-content",
