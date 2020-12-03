@@ -1,6 +1,11 @@
 import { findMainFeedPosts } from "./insta-info-util";
 
-const downloadKey = "f";
+export const downloadKey = "f";
+
+export function requestDownloadByButton(downloadButton: HTMLElement){
+	downloadButton.dispatchEvent(new CustomEvent("download-request"));
+}
+
 
 function calculatePostDistanceToViewport(postEl: HTMLElement): number {
 	const rect = postEl.getBoundingClientRect();
@@ -34,7 +39,7 @@ function downloadCurrentPostMedia(){
 		console.warn("could not find download-button");
 		return;
 	}
-	downloadButton.dispatchEvent(new CustomEvent("download-request"));
+	requestDownloadByButton(downloadButton);
 }
 
 document.addEventListener("keydown", e => {

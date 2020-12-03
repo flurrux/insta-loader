@@ -1,6 +1,7 @@
 import { MediaWriteInfo, createDiskDownloadButton, DiskDownloadButtonOptions } from "../download-buttons/disk-download-button";
 import { getSrcOfStory, getUsernameByStoryUrl } from "../insta-info-util";
-import { createElementByHTML } from "../../lib/html-util";
+import { createElementByHTML, querySelectorAncestor } from "../../lib/html-util";
+import { downloadKey, requestDownloadByButton } from "../download-shortcut";
 
 
 const findCloseStoryElement = (storyEl: HTMLElement): HTMLElement => {
@@ -54,15 +55,32 @@ const createStoryPauseHandle = (): StoryPauseHandle => {
 		continue: continueStory
 	}
 };
-export const injectDownloadButtonsIntoStory = (storyEl: HTMLElement) => {
-	const closeEl = findCloseStoryElement(storyEl);
-	if (closeEl === null) {
-		console.warn("cannot find the close button. instagram may have changed it.");
+
+function findSvgPauseOrPlayButton(){
+	const pauseButton = document.querySelector("*[aria-label=Pause]") as HTMLElement;
+	if (pauseButton) return pauseButton;
+
+	const playButtonSvg = document.querySelector("*[aria-label=Play]") as HTMLElement;
+	return playButtonSvg;
+}
+
+function findStoryPlayButton(){
+	const svgButton = findSvgPauseOrPlayButton();
+	if (!svgButton){
+		console.warn("could not add download-button in story. the svg for the pause/play button could not be found");
 		return;
 	}
+	const playButton = querySelectorAncestor("button", svgButton);
+	if (!playButton) {
+		console.warn("could not add download-button in story. the svg for the pause/play button has not button as an ancestor");
+		return;
+	}
+	return playButton;
+}
 
+export const injectDownloadButtonsIntoStory = (storyEl: HTMLElement) => {
 	const container = createElementByHTML(`
-		<div style="position: absolute; right: -56px; top: 56px;"></div>
+		<div style="margin-right: 20px;"></div>
 	`);
 
 	const pauseHandleDownloadOptions = ((): DiskDownloadButtonOptions => {
@@ -84,9 +102,16 @@ export const injectDownloadButtonsIntoStory = (storyEl: HTMLElement) => {
 		() => getMediaSrcOfStoryElement(storyEl),
 		pauseHandleDownloadOptions
 	);
-	Object.assign(diskDownloadButton.style, getStoryDownloadElementStyle(storyEl));
+	// Object.assign(diskDownloadButton.style, getStoryDownloadElementStyle(storyEl));
 	container.appendChild(diskDownloadButton);
+	
+	const playButton = findStoryPlayButton();
+	const buttonContainer = playButton.parentElement;
+	buttonContainer.insertAdjacentElement("afterbegin", container);
 
-	const closeButton = closeEl.parentElement.parentElement;
-	closeButton.insertAdjacentElement("afterend", container);
+	document.addEventListener("keypress", e => {
+		if (e.key === downloadKey){
+			requestDownloadByButton(diskDownloadButton);
+		}
+	});
 };
