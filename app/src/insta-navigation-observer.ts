@@ -1,6 +1,6 @@
 
 
-type InstaPageType = "mainFeed" | "post" | "personFeed" | "stories";
+type InstaPageType = "mainFeed" | "post" | "personFeed" | "stories" | "reel";
 
 //missing:
 //tagFeed
@@ -18,6 +18,9 @@ export const getCurrentPageType = (): InstaPageType => {
 	}
 	else if (href.includes("/p/")) {
 		return pageType.post;
+	}
+	else if (href.includes("/reel/")){
+		return "reel";
 	}
 	else if (href.includes("/stories/")) {
 		return pageType.stories;

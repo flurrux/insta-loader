@@ -6,16 +6,13 @@ export type VideoOrImageElement = HTMLVideoElement | HTMLImageElement;
 
 export const getElementTypesOnCurrentPage = (): InstaElementType[] => {
 	const curPageType = getCurrentPageType();
-	if (curPageType === "mainFeed" || curPageType === "post"){
-		return ["post"];
-	}
-	else if (curPageType === "personFeed"){
+	if (curPageType === "personFeed"){
 		return ["preview"];
 	}
 	else if (curPageType === "stories") {
 		return ["story"];
 	}
-	return [];
+	return ["post"];
 };
 
 export const getHighestQualityFromSrcset = (srcset: string): string => {
