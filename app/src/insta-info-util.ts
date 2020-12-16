@@ -191,8 +191,13 @@ const findUsernameInPost = (postElement: HTMLElement): string => {
 	return /(?<=\.com\/).*(?=\/)/.exec(profileLink)[0];
 };
 const findTypeOfPost = (postElement: HTMLElement): PostType => {
-	if (postElement.querySelector("ul img[srcset], ul video") !== null) return "collection";
+	// if (postElement.querySelector("ul img[srcset], ul video") !== null) return "collection";
+	if (postElement.querySelector('[class*="Chevron"]')) return "collection";
 	const mediaElement = findMediaElementInPost(postElement);
+	if (!mediaElement){
+		console.warn("no media-element found");
+		console.log(postElement);
+	}
 	return mediaElement.tagName === "VIDEO" ? "video" : "image";
 };
 const extractMediaFromElement = (mediaElement: VideoOrImageElement): Omit<SingleMediaInfo, "username"> => {
