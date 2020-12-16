@@ -196,7 +196,7 @@ const findTypeOfPost = (postElement: HTMLElement): PostType => {
 	const mediaElement = findMediaElementInPost(postElement);
 	if (!mediaElement){
 		console.warn("no media-element found");
-		console.log(postElement);
+		console.log(postElement.innerHTML);
 	}
 	return mediaElement.tagName === "VIDEO" ? "video" : "image";
 };
@@ -252,16 +252,37 @@ export const getMediaInfoByHtml = (postElement: HTMLElement): SingleMediaInfo =>
 
 export function createMediaFetcherBySrcElement(postElement: HTMLElement) {
 	let currentMediaInfo: MediaInfo = null;
-	const postType = findTypeOfPost(postElement);
+	let currentPostType: PostType = null;
 	return async(): Promise<SingleMediaInfo> => {
+		if (!currentPostType){
+			currentPostType = findTypeOfPost(postElement);
+		}
 		if (!currentMediaInfo){
 			const postHref = getHrefOfPost(postElement);
 			currentMediaInfo = await fetchMediaInfo(postHref);
 		}
 		const username = currentMediaInfo.username;
-		const collectionIndex = postType === "collection" ? getCurrentCollectionIndex(postElement) : 0;
+		const collectionIndex = currentPostType === "collection" ? getCurrentCollectionIndex(postElement) : 0;
 		return { username, ...currentMediaInfo.mediaArray[collectionIndex] }
 	}
+}
+
+
+function calculatePostDistanceToViewport(postEl: HTMLElement): number {
+	const rect = postEl.getBoundingClientRect();
+	const centerY = (rect.top + rect.bottom) / 2;
+	return Math.abs(centerY - window.innerHeight / 2);
+}
+export function findCurrentPost(): HTMLElement {
+	const posts = findMainFeedPosts();
+	const closestPostData: [number, HTMLElement] = posts.reduce(
+		(acc: [number, HTMLElement], postEl: HTMLElement) => {
+			const dist = calculatePostDistanceToViewport(postEl);
+			return dist < acc[0] ? [dist, postEl] as [number, HTMLElement] : acc
+		},
+		[Infinity, null]
+	);
+	return closestPostData[1];
 }
 
 

@@ -1,28 +1,9 @@
-import { findMainFeedPosts } from "./insta-info-util";
+import { findCurrentPost } from "./insta-info-util";
 
-export const downloadKey = "f";
+export const downloadKey = "Enter";
 
 export function requestDownloadByButton(downloadButton: HTMLElement){
 	downloadButton.dispatchEvent(new CustomEvent("download-request"));
-}
-
-
-function calculatePostDistanceToViewport(postEl: HTMLElement): number {
-	const rect = postEl.getBoundingClientRect();
-	const centerY = (rect.top + rect.bottom) / 2;
-	return Math.abs(centerY - window.innerHeight / 2);
-}
-
-function findCurrentPost(): HTMLElement {
-	const posts = findMainFeedPosts();
-	const closestPostData: [number, HTMLElement] = posts.reduce(
-		(acc: [number, HTMLElement], postEl: HTMLElement) => {
-			const dist = calculatePostDistanceToViewport(postEl);
-			return dist < acc[0] ? [dist, postEl] : acc
-		},
-		[Infinity, null]
-	);
-	return closestPostData[1];
 }
 
 function findDownloadButton(postEl: HTMLElement): HTMLElement {

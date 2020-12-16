@@ -30,7 +30,6 @@ function scrollToPost(findFunc: () => HTMLElement){
 		return;
 	}
 	const scrollDelta = -calculateWindowBottomToDownloadBottomDifference(postEl);
-	console.log("target", postEl, "scroll-delta", -scrollDelta);
 	const targetScrollTop = window.scrollY + scrollDelta;
 	window.scrollTo({
 		left: window.scrollX,
@@ -39,13 +38,14 @@ function scrollToPost(findFunc: () => HTMLElement){
 	});
 }
 
+const upButton = "w";
+const downKey = "s";
+
 document.addEventListener("keydown", e => {
-	//why not "w" and "s" for navigation?
-	//pressing "s" saves the current post to your collections
-	if (e.key === "e"){
+	if (e.key === upButton){
 		scrollToPost(findPrevPost);
 	}
-	else if (e.key === "d"){
+	else if (e.key === downKey){
 		scrollToPost(findNextPost);
 	}
 });
