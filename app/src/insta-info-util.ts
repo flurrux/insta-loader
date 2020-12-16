@@ -65,11 +65,18 @@ export interface ImgInfo {
 	previewSrc: string
 };
 export type VideoOrImgInfo = VideoInfo | ImgInfo;
+type PostType = "collection" | "video" | "image";
 export interface MediaInfo {
 	username: string,
-	postType: "collection" | "video" | "image",
+	postType: PostType,
 	mediaArray: VideoOrImgInfo[]
 }
+export interface SingleMediaInfo { 
+	username: string, 
+	src: string, 
+	type: "video" | "image"
+}
+
 const getMediaInfoFromResponseText = (responseText: string): MediaInfo => {
 	const dataText = /(?<=window\.__additionalDataLoaded\(.*',).*(?=\);<)/.exec(responseText);
 	if (!dataText) throw '__additionalDataLoaded not found on window';
@@ -170,8 +177,8 @@ export const getPreviewSrcOfPost = (postElement: HTMLElement): string => {
 	}
 };
 export const getHrefOfPost = (postElement: HTMLElement): string => {
-	const linkElement = postElement.querySelector('a[href*="/p/"') as HTMLLinkElement;
-	const href = linkElement[0].href;
+	const linkElements = postElement.querySelectorAll('a[href*="/p/"') as NodeListOf<HTMLLinkElement>;
+	const href = linkElements[linkElements.length - 1].href;
 	const startIndex = href.indexOf("/p/") + 3;
 	const endIndex = href.indexOf("/", startIndex);
 	return href.substring(0, endIndex + 1);
@@ -183,16 +190,33 @@ const findUsernameInPost = (postElement: HTMLElement): string => {
 	const profileLink = (postElement.querySelector("header a") as HTMLLinkElement).href;
 	return /(?<=\.com\/).*(?=\/)/.exec(profileLink)[0];
 };
-const findTypeOfPost = (postElement: HTMLElement): ("video" | "image" | "collection") => {
+const findTypeOfPost = (postElement: HTMLElement): PostType => {
 	if (postElement.querySelector("ul img[srcset], ul video") !== null) return "collection";
 	const mediaElement = findMediaElementInPost(postElement);
 	return mediaElement.tagName === "VIDEO" ? "video" : "image";
 };
-const extractMediaFromElement = (mediaElement: VideoOrImageElement): { type: "video" | "image", src: string } => {
+const extractMediaFromElement = (mediaElement: VideoOrImageElement): Omit<SingleMediaInfo, "username"> => {
 	const type = mediaElement.tagName === "VIDEO" ? "video" : "image";
 	const src = type === "video" ? mediaElement.src : getHighestQualityFromSrcset((mediaElement as HTMLImageElement).srcset);
 	return { type, src };
 };
+function getCurrentCollectionIndex(postEl: HTMLElement): number {
+	const list = postEl.querySelector("ul");
+	//the actual first item at index 0 is some kind of marker with width 1
+	const firstItem = list.children[1];
+	const listItemWidth = parseFloat(getComputedStyle(firstItem).getPropertyValue("width"));
+	const positionReferenceElement = list.parentElement.parentElement;
+	const visibleX = positionReferenceElement.getBoundingClientRect().x;
+	
+	for (let i = 1; i < list.children.length; i++) {
+		const listItem = list.children[i];
+		const curItemX = listItem.getBoundingClientRect().x;
+		if (Math.abs(visibleX - curItemX) < listItemWidth / 2) {
+			return i - 1;
+		}
+	}
+	return -1;
+}
 const getCollectionMediaByPostElement = (postElement: HTMLElement) => {
 	const list = postElement.querySelector("ul");
 	//the actual first item at index 0 is some kind of marker with width 1
@@ -213,15 +237,27 @@ const getCollectionMediaByPostElement = (postElement: HTMLElement) => {
 const getSingleMediaInfoByPostElement = (postElement: HTMLElement) => {
 	return extractMediaFromElement(findMediaElementInPost(postElement));
 };
-export const getMediaInfoByHtml = (postElement: HTMLElement) => {
+export const getMediaInfoByHtml = (postElement: HTMLElement): SingleMediaInfo => {
 	const username = findUsernameInPost(postElement);
 	const postType = findTypeOfPost(postElement);
 	const media = postType === "collection" ? getCollectionMediaByPostElement(postElement) : getSingleMediaInfoByPostElement(postElement);
-	return {
-		username, postType, media
-	};
+	return { username, ...media };
 };
 
+
+export function createMediaFetcherBySrcElement(postElement: HTMLElement) {
+	let currentMediaInfo: MediaInfo = null;
+	const postType = findTypeOfPost(postElement);
+	return async(): Promise<SingleMediaInfo> => {
+		if (!currentMediaInfo){
+			const postHref = getHrefOfPost(postElement);
+			currentMediaInfo = await fetchMediaInfo(postHref);
+		}
+		const username = currentMediaInfo.username;
+		const collectionIndex = postType === "collection" ? getCurrentCollectionIndex(postElement) : 0;
+		return { username, ...currentMediaInfo.mediaArray[collectionIndex] }
+	}
+}
 
 
 //story ###

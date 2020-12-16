@@ -1,5 +1,5 @@
 import { MediaWriteInfo, createDiskDownloadButton } from "../download-buttons/disk-download-button";
-import { getPreviewSrcOfPost, getMediaInfoByHtml, findStoryElement } from "../insta-info-util";
+import { getPreviewSrcOfPost, getMediaInfoByHtml, createMediaFetcherBySrcElement } from "../insta-info-util";
 import { createElementByHTML } from "../../lib/html-util";
 
 const findInteractionSection = (postElement: HTMLElement): HTMLElement => {
@@ -34,10 +34,7 @@ const getMediaSrcOfPostElement = (postElement: HTMLElement): Promise<MediaWriteI
 		return Promise.reject("preview-src not found");
 	}
 	const data = getMediaInfoByHtml(postElement);
-	return Promise.resolve({
-		username: data.username,
-		src: data.media.src
-	} as MediaWriteInfo);
+	return Promise.resolve(data);
 };
 export const injectDownloadButtonsIntoPost = (postElement: HTMLElement) => {
 	const sectionEl = findInteractionSection(postElement);
@@ -53,7 +50,8 @@ export const injectDownloadButtonsIntoPost = (postElement: HTMLElement) => {
 			"
 		></div>
 	`);
-	const getMediaSrc = () => getMediaSrcOfPostElement(postElement);
+	// const getMediaSrc = () => getMediaSrcOfPostElement(postElement);
+	const getMediaSrc = createMediaFetcherBySrcElement(postElement);
 	const downloadButton = createDiskDownloadButton(getMediaSrc);
 	applyPostDownloadElementStyle(postElement, downloadButton);
 	bar.appendChild(downloadButton);
