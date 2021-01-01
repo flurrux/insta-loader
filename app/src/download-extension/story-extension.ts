@@ -1,7 +1,7 @@
-import { MediaWriteInfo, createDiskDownloadButton, DiskDownloadButtonOptions } from "../download-buttons/disk-download-button";
-import { getSrcOfStory, getUsernameByStoryUrl } from "../insta-info-util";
 import { createElementByHTML, querySelectorAncestor } from "../../lib/html-util";
+import { createDiskDownloadButton, DiskDownloadButtonOptions, MediaWriteInfo } from "../download-buttons/disk-download-button";
 import { downloadKey, requestDownloadByButton } from "../download-shortcut";
+import { getSrcOfStory, getUsernameOfStory } from "../insta-info-util";
 
 
 const findCloseStoryElement = (storyEl: HTMLElement): HTMLElement => {
@@ -10,7 +10,7 @@ const findCloseStoryElement = (storyEl: HTMLElement): HTMLElement => {
 const getMediaSrcOfStoryElement = (storyEl: HTMLElement): Promise<MediaWriteInfo> => {
 	try {
 		const src = getSrcOfStory(storyEl);
-		const username = getUsernameByStoryUrl(window.location.href);
+		const username = getUsernameOfStory();
 		return Promise.resolve({ src, username });
 	}
 	catch (e) {

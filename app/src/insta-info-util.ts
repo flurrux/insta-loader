@@ -331,6 +331,22 @@ export const getSrcOfStory = (storyElement: HTMLElement): string => {
 	}
 	return null;
 };
+function findUsernameOnProfilePage(): string {
+	const metaEl = document.querySelector('meta[property="og:url"]') as HTMLMetaElement;
+	if (!metaEl) return null;
+	const pageUrl = metaEl.content;
+	const usernameMatch = pageUrl.match(/(?<=\.com\/).*(?=\/)/);
+	if (!usernameMatch) return null;
+	return usernameMatch[0];
+}
+export function getUsernameOfStory(): string {
+	const url = window.location.href;
+	if (url.startsWith("https://www.instagram.com/stories/highlights/")){
+		// return window._sharedData.entry_data.ProfilePage[0].graphql.user.username;
+		return findUsernameOnProfilePage();
+	}
+	return getUsernameByStoryUrl(url);
+}
 export const getUsernameByStoryUrl = (storyUrl: string): string => {
 	return /(?<=stories\/).*?(?=\/)/.exec(storyUrl)[0];
 };
