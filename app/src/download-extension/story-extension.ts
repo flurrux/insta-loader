@@ -57,11 +57,7 @@ const createStoryPauseHandle = (): StoryPauseHandle => {
 };
 
 function findSvgPauseOrPlayButton(){
-	const pauseButton = document.querySelector("*[aria-label=Pause]") as HTMLElement;
-	if (pauseButton) return pauseButton;
-
-	const playButtonSvg = document.querySelector("*[aria-label=Play]") as HTMLElement;
-	return playButtonSvg;
+	return document.querySelector("header svg") as HTMLElement;
 }
 
 function findStoryPlayButton(){
