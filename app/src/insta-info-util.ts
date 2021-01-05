@@ -223,12 +223,15 @@ const extractMediaFromElement = (mediaElement: VideoOrImageElement): Omit<Single
 };
 function getCurrentCollectionIndex(postEl: HTMLElement): number {
 	const list = postEl.querySelector("ul");
+	return getCurrentCollectionIndexByList(list);
+}
+function getCurrentCollectionIndexByList(list: HTMLUListElement): number {
 	//the actual first item at index 0 is some kind of marker with width 1
 	const firstItem = list.children[1];
 	const listItemWidth = parseFloat(getComputedStyle(firstItem).getPropertyValue("width"));
 	const positionReferenceElement = list.parentElement.parentElement;
 	const visibleX = positionReferenceElement.getBoundingClientRect().x;
-	
+
 	for (let i = 1; i < list.children.length; i++) {
 		const listItem = list.children[i];
 		const curItemX = listItem.getBoundingClientRect().x;
@@ -237,6 +240,11 @@ function getCurrentCollectionIndex(postEl: HTMLElement): number {
 		}
 	}
 	return -1;
+}
+function getCurrentCollectionElement(postEl: HTMLElement): HTMLElement {
+	const list = postEl.querySelector("ul");
+	const listIndex = getCurrentCollectionIndexByList(list);
+	return list.children[listIndex + 1] as HTMLElement;
 }
 const getCollectionMediaByPostElement = (postElement: HTMLElement) => {
 	const list = postElement.querySelector("ul");
@@ -265,7 +273,43 @@ export const getMediaInfoByHtml = (postElement: HTMLElement): SingleMediaInfo =>
 	return { username, ...media };
 };
 
-
+function findMediaEntryByVideo(mediaArray: VideoOrImgInfo[], videoEl: HTMLVideoElement): VideoInfo {
+	const poster = videoEl.poster;
+	if (poster === "") {
+		console.warn("cannot find the position for this collection-element!");
+		return null;
+	}
+	const mediaIndex = mediaArray.findIndex(val => val.previewSrc === poster);
+	if (mediaIndex < 0) {
+		console.warn("poster does not match any previews, therefore cannot find the index for this item");
+		return null;
+	}
+	return mediaArray[mediaIndex] as VideoInfo;
+}
+function findMediaEntryByImage(mediaArray: VideoOrImgInfo[], imgEl: HTMLImageElement): ImgInfo {
+	const srcset = imgEl.srcset;
+	if (!srcset){
+		console.warn("the image has no srcset");
+		return null;
+	}
+	const highQualiSrc = getHighestQualityFromSrcset(srcset);
+	return {
+		type: "image",
+		src: highQualiSrc,
+		previewSrc: "",
+		srcset: [],
+	}
+}
+function findMediaEntryByCollection(mediaArray: VideoOrImgInfo[], postElement: HTMLElement): VideoOrImgInfo {
+	const collectionElement = getCurrentCollectionElement(postElement);
+	const mediaElement = findMediaElementInPost(collectionElement);
+	if (mediaElement.matches("video")) {
+		return findMediaEntryByVideo(mediaArray, mediaElement as HTMLVideoElement);
+	}
+	else {
+		return findMediaEntryByImage(mediaArray, mediaElement as HTMLImageElement);
+	}
+}
 export function createMediaFetcherBySrcElement(postElement: HTMLElement) {
 	let currentMediaInfo: MediaInfo = null;
 	let currentPostType: PostType = null;
@@ -278,8 +322,13 @@ export function createMediaFetcherBySrcElement(postElement: HTMLElement) {
 			currentMediaInfo = await fetchMediaInfo(postHref);
 		}
 		const username = currentMediaInfo.username;
-		const collectionIndex = currentPostType === "collection" ? getCurrentCollectionIndex(postElement) : 0;
-		return { username, ...currentMediaInfo.mediaArray[collectionIndex] }
+		const mediaArray = currentMediaInfo.mediaArray;
+		const videoOrImgInfo = currentPostType === "collection" ? findMediaEntryByCollection(mediaArray, postElement) : mediaArray[0];
+		if (!videoOrImgInfo){
+			console.error("could not find media of the current collection item!");
+			return;
+		}
+		return { username, ...videoOrImgInfo }
 	}
 }
 
