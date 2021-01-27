@@ -282,6 +282,7 @@ function findMediaEntryByVideo(mediaArray: VideoOrImgInfo[], videoEl: HTMLVideoE
 	const mediaIndex = mediaArray.findIndex(val => val.previewSrc === poster);
 	if (mediaIndex < 0) {
 		console.warn("poster does not match any previews, therefore cannot find the index for this item");
+		console.log(poster, mediaArray);
 		return null;
 	}
 	return mediaArray[mediaIndex] as VideoInfo;

@@ -11,13 +11,15 @@
   },
   "author": "Christian Hoffmann <christianhoffmann@outlook.com>",
   "dependencies": {
-    "ramda": "^0.26.1"
+	"ramda": "^0.26.1",
+	"fp-ts": "^2.8.4"
   },
   "browserslist": [
     "Chrome > 67"
   ],
   "devDependencies": {
-    "@types/chrome": "0.0.103",
+	"@types/chrome": "0.0.103",
+	"@types/ramda": "github:types/npm-ramda#dist",
     "cssnano": "^4.1.10",
     "typescript": "^3.9.3"
   }
