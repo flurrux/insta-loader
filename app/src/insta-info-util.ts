@@ -279,10 +279,11 @@ function findMediaEntryByVideo(mediaArray: VideoOrImgInfo[], videoEl: HTMLVideoE
 		console.warn("cannot find the position for this collection-element!");
 		return null;
 	}
-	const mediaIndex = mediaArray.findIndex(val => val.previewSrc === poster);
+	const trimmedPoster = /^https:\/\/.*\.jpg/.exec(poster)[0];
+	const mediaIndex = mediaArray.findIndex(val => val.previewSrc.includes(trimmedPoster));
 	if (mediaIndex < 0) {
 		console.warn("poster does not match any previews, therefore cannot find the index for this item");
-		console.log(poster, mediaArray);
+		console.log(poster, trimmedPoster, mediaArray);
 		return null;
 	}
 	return mediaArray[mediaIndex] as VideoInfo;
