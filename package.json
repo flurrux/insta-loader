@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "download buttons for instagram",
   "scripts": {
-    "build:index": "parcel build ./app/src/index.ts -o ./dist/index.js",
-    "build:background": "parcel build ./app/src/disk-writing/disk-download-background.ts -o ./dist/disk-download-background.js && parcel build ./app/src/notifications-background.ts -o ./dist/notifications-background.js && parcel build ./app/src/disk-writing/chrome-download-background.ts -o ./dist/chrome-download-background.js",
-    "build:options": "parcel build ./app/src/options/options.js --out-dir ./dist/options --no-content-hash && cp ./app/src/options/options.html ./dist/options/options.html",
+    "build:index": "parcel build ./app/src/index.ts",
+    "build:background": "parcel build ./app/src/disk-writing/disk-download-background.ts && parcel build ./app/src/notifications-background.ts && parcel build ./app/src/disk-writing/chrome-download-background.ts",
+    "build:options": "parcel build ./app/src/options/options.js --dist-dir ./dist/options --no-content-hash && cp ./app/src/options/options.html ./dist/options/options.html",
     "build:copy-static": "cp ./app/manifest.json ./dist/manifest.json && cp -r ./app/icons/ ./dist/icons/",
     "build": "npm run build:index && npm run build:background && npm run build:options && npm run build:copy-static"
   },

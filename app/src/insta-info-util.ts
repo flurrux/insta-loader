@@ -64,7 +64,15 @@ export const getOwnUsername = (): string => {
 	return /(?<="username":")[^"]*/.exec(document.body.innerHTML)[0];
 };
 
-const queryVideoOrImg = (parent: HTMLElement) => parent.querySelector("video, img[srcset]") as VideoOrImageElement;
+const queryLargestImage = (parent: HTMLElement): (HTMLImageElement | null) => {
+	return Array.from(parent.querySelectorAll("img")).find(img => img.offsetHeight > 400);
+};
+
+const queryVideoOrImg = (parent: HTMLElement) => {
+	const videoOrImgWithSrcSet = parent.querySelector("video, img[srcset]") as (VideoOrImageElement | null);
+	if (videoOrImgWithSrcSet) return videoOrImgWithSrcSet;
+	return queryLargestImage(parent);
+};
 
 
 //fetching ###
@@ -289,12 +297,14 @@ function findMediaEntryByVideo(mediaArray: VideoOrImgInfo[], videoEl: HTMLVideoE
 	return mediaArray[mediaIndex] as VideoInfo;
 }
 function findMediaEntryByImage(mediaArray: VideoOrImgInfo[], imgEl: HTMLImageElement): ImgInfo {
+	let highQualiSrc = "";
 	const srcset = imgEl.srcset;
-	if (!srcset){
-		console.warn("the image has no srcset");
-		return null;
+	if (srcset){
+		highQualiSrc = getHighestQualityFromSrcset(srcset);
 	}
-	const highQualiSrc = getHighestQualityFromSrcset(srcset);
+	else {
+		highQualiSrc = imgEl.src;
+	}
 	return {
 		type: "image",
 		src: highQualiSrc,
