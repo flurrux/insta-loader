@@ -1,26 +1,36 @@
 {
-  "name": "@flurrux/insta-loader",
-  "version": "1.0.0",
-  "description": "download buttons for instagram",
-  "scripts": {
-    "build:index": "parcel build ./app/src/index.ts",
-    "build:background": "parcel build ./app/src/disk-writing/disk-download-background.ts && parcel build ./app/src/notifications-background.ts && parcel build ./app/src/disk-writing/chrome-download-background.ts",
-    "build:options": "parcel build ./app/src/options/options.js --dist-dir ./dist/options --no-content-hash && cp ./app/src/options/options.html ./dist/options/options.html",
-    "build:copy-static": "cp ./app/manifest.json ./dist/manifest.json && cp -r ./app/icons/ ./dist/icons/",
-    "build": "npm run build:index && npm run build:background && npm run build:options && npm run build:copy-static"
-  },
-  "author": "Christian Hoffmann <christianhoffmann@outlook.com>",
-  "dependencies": {
-	"ramda": "^0.26.1",
-	"fp-ts": "^2.8.4"
-  },
-  "browserslist": [
-    "Chrome > 67"
-  ],
-  "devDependencies": {
-	"@types/chrome": "0.0.103",
-	"@types/ramda": "github:types/npm-ramda#dist",
-    "cssnano": "^4.1.10",
-    "typescript": "^3.9.3"
-  }
+	"name": "@flurrux/insta-loader",
+	"version": "1.0.0",
+	"description": "download buttons for instagram",
+	"scripts": {
+		"build:staticfiles": "python static_file_copy.py",
+		"build:parcel": "parcel build --no-source-maps --dist-dir ./dist",
+		"build": "npm run build:parcel && npm run build:staticfiles"
+	},
+	"source": [
+		"./app/src/index.ts",
+		
+		"./app/src/disk-writing/disk-download-background.ts",
+		"./app/src/notifications-background.ts",
+		"./app/src/disk-writing/chrome-download-background.ts",
+
+		"./app/manifest.json"
+	],
+  	"author": "Christian Hoffmann <christianhoffmann@outlook.com>",
+	"dependencies": {
+		"fp-ts": "^2.9.5",
+		"ramda": "^0.27.1"
+	},
+	"browserslist": [
+		">5%",
+		"Edge > 14",
+		"Firefox > 63",
+		"Chrome > 67"
+	],
+	"devDependencies": {
+		"@parcel/transformer-raw": "^2.1.1",
+		"@types/chrome": "^0.0.129",
+		"parcel": "^2.1.0",
+		"typescript": "^3.7.5"
+	}
 }

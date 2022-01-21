@@ -1,3 +1,7 @@
+import { sort } from 'fp-ts/lib/Array';
+import { flow } from 'fp-ts/lib/function';
+import { Ord } from 'fp-ts/lib/number';
+import { contramap, reverse } from 'fp-ts/lib/Ord';
 import { getCurrentPageType } from './insta-navigation-observer';
 
 export type InstaElementType = "preview" | "post" | "story";
@@ -77,18 +81,72 @@ const queryVideoOrImg = (parent: HTMLElement) => {
 
 //fetching ###
 
-export interface VideoInfo {
-	type: "video",
+type VersionItem = {
+	width: number, 
+	height: number,
+	url: string
+};
+const versionHeightOrd = contramap<number, VersionItem>(item => item.height)(reverse(Ord));
+
+function getBestQualityVersion(versions: VersionItem[]): string {
+	const versionsSorted = sort(versionHeightOrd)(versions);
+	return versionsSorted[0].url;
+}
+
+type VideoItem = {
+	"video_versions": VersionItem[],
+	"image_versions2": {
+		"candidates": VersionItem[]
+	}
+};
+type ImageItem = {
+	"image_versions2": {
+		"candidates": VersionItem[]
+	}
+};
+type VideoOrImgItem = VideoItem | ImageItem;
+
+function getVersions(item: VideoOrImgItem): VersionItem[] {
+	if ("video_versions" in item) return item.video_versions;
+	return item["image_versions2"]["candidates"];
+}
+
+const getMediaSrcFromSingleItem = flow(getVersions, getBestQualityVersion);
+
+function getMediaInfoFromSingleItem(item: VideoOrImgItem): VideoOrImgInfo {
+	if ("video_versions" in item){
+		return {
+			type: "video",
+			src: getBestQualityVersion(item["video_versions"]),
+			previewSrc: item["image_versions2"]["candidates"][0].url
+		}
+	}
+
+	const imgSrc = getBestQualityVersion(item["image_versions2"]["candidates"]);
+	return {
+		type: "image",
+		src: imgSrc,
+		previewSrc: imgSrc
+	}
+}
+
+type CarouselItem = {
+	"carousel_media": VideoOrImgItem[]
+};
+
+function getMediaInfoFromCarousel(carousel: CarouselItem): VideoOrImgInfo[] {
+	return carousel["carousel_media"].map(getMediaInfoFromSingleItem)
+}
+
+
+type VideoOrImgInfoBase = {
 	src: string,
 	previewSrc: string
 };
-export interface ImgInfo {
-	type: "image", 
-	srcset: SrcSetEntry[],
-	src: string,
-	previewSrc: string
-};
+export type VideoInfo = VideoOrImgInfoBase & { type: "video" };
+export type ImgInfo = VideoOrImgInfoBase & { type: "image" };
 export type VideoOrImgInfo = VideoInfo | ImgInfo;
+
 type PostType = "collection" | "video" | "image";
 export interface MediaInfo {
 	username: string,
@@ -101,46 +159,49 @@ export interface SingleMediaInfo {
 	type: "video" | "image"
 }
 
+
+
 const getMediaInfoFromResponseText = (responseText: string): MediaInfo => {
 	const dataText = /(?<=window\.__additionalDataLoaded\(.*',).*(?=\);<)/.exec(responseText);
 	if (!dataText) throw '__additionalDataLoaded not found on window';
+	if (!Array.isArray(dataText)){
+		console.log(dataText);
+		throw 'dataText is not an array! (see above log what it actually is, i have no idea)';
+	}
 
-	const dataObject = JSON.parse(dataText[0]);
+	let dataObject = JSON.parse(dataText[0]);
 
-	if (!dataObject.graphql) throw 'graphql not found';
-	if (!dataObject.graphql.shortcode_media) throw 'shortcode_media not found';
-
-	const postInfo = dataObject.graphql.shortcode_media;
-	const username: string = postInfo.owner.username;
+	if (!dataObject.items){
+		console.log(dataObject);
+		throw 'items not found in dataObject (see above log)';
+	}
+	const items = dataObject.items;
+	if (items.length === 0){
+		throw 'items are empty';
+	}
+	const item = items[0];
+	const username: string = item.user.username;
 	
-	const [postType, subMedia] = postInfo.edge_sidecar_to_children !== undefined ? 
-		[ "collection", (postInfo.edge_sidecar_to_children.edges).map(el => el.node) ] : 
-		[ postInfo.video_url !== undefined ? "video" : "image", [postInfo] ];
+	let mediaArray: VideoOrImgInfo[] = [];
+	let postType: PostType = null;
 
-	const mediaArray: VideoOrImgInfo[] = [];
-	for (let a = 0; a < subMedia.length; a++) {
-		let subMed = subMedia[a];
-		let subObj: Partial<VideoOrImgInfo> = {
-			previewSrc: subMed.display_url
-		};
+	if ("video_versions" in item){
+		postType = "video";
+		mediaArray.push(
+			getMediaInfoFromSingleItem(item)
+		);
+	}
 
-		if (subMed.video_url !== undefined) {
-			Object.assign(subObj, {
-				type: "video",
-				src: subMed.video_url
-			} as Partial<VideoInfo>)
-		}
-		else {
-			const srcset = subMed.display_resources as SrcSetEntry[];
-			const highQualitySrc = getHighestQualityFromSrcsetArray(srcset);
-			Object.assign(subObj, {
-				type: "image",
-				srcset, 
-				src: highQualitySrc
-			} as Partial<ImgInfo>)
-		}
+	if ("image_versions2" in item){
+		postType = "image";
+		mediaArray.push(
+			getMediaInfoFromSingleItem(item)
+		);
+	}
 
-		mediaArray.push(subObj as VideoOrImgInfo);
+	if ("carousel_media" in item){
+		postType = "collection";
+		mediaArray = getMediaInfoFromCarousel(item);
 	}
 
 	if (mediaArray.length === 0) {
@@ -153,6 +214,7 @@ const getMediaInfoFromResponseText = (responseText: string): MediaInfo => {
 		username
 	} as MediaInfo;
 };
+
 export const fetchMediaInfo = (url: string): Promise<MediaInfo> => {
 	return new Promise((resolve, reject) => {
 		const request = new XMLHttpRequest();
@@ -309,7 +371,6 @@ function findMediaEntryByImage(mediaArray: VideoOrImgInfo[], imgEl: HTMLImageEle
 		type: "image",
 		src: highQualiSrc,
 		previewSrc: "",
-		srcset: [],
 	}
 }
 function findMediaEntryByCollection(mediaArray: VideoOrImgInfo[], postElement: HTMLElement): VideoOrImgInfo {

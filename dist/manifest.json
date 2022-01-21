@@ -13,9 +13,9 @@
 
 	"background": {
 		"scripts": [
-			"disk-download-background.js",
-			"chrome-download-background.js",
-			"notifications-background.js"
+			"./src/disk-writing/disk-download-background.js",
+			"./src/disk-writing/chrome-download-background.js",
+			"./src/notifications-background.js"
 		],
 		"persistent": false
 	},
@@ -23,7 +23,7 @@
 	"content_scripts": [
 		{
 			"matches": ["*://www.instagram.com/*"],
-			"js": ["index.js"]
+			"js": ["./src/index.js"]
 		}
 	],
 
@@ -35,11 +35,6 @@
 		"downloads",
 		"*://www.instagram.com/*"
 	],
-
-	"options_ui": {
-		"page": "options/options.html",
-		"chrome_style": true
-	},
 
 	"web_accessible_resources": [
 		"icons/*.png",
