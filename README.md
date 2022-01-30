@@ -11,15 +11,23 @@ a chrome extension to quickly download any media from [https://instagram.com/](i
 - navigate left/right on carousels (with multiple pictures/videos) and in stories via the "d" (navigate right) and "a" (navigate left) keys.  
 - on the mainfeed or in stories, the enter-key can be pressed to trigger downloads
 
-<video mute controls style="height: 300px;" src="./demo/mainfeed-download.mp4"></video>
+<div style="height: 20px;"></div>
 
-<video mute controls style="height: 300px;" src="./demo/story-download.mp4"></video>
+<img src="./demo/mainfeed-download.gif" style="max-height: 350px;" />
 
-<video mute controls style="height: 300px;" src="./demo/userpage-download.mp4"></video>
+<div style="height: 20px;"></div>
+
+<img src="./demo/story-download.gif" style="max-height: 350px;" />
+
+<div style="height: 20px;"></div>
+
+<img src="./demo/userpage-download.gif" style="max-height: 350px;" />
+
+(longer gifs are intentionally choppy to reduce filesize)
 
 # install
 
-<video mute controls style="height: 300px;" src="./demo/install.mp4"></video>
+<img src="./demo/install.gif" style="max-height: 350px;" />
 
 - click on the latest release to the right of this page and download the zip folder. it will be named something like `insta-loader-vx.x.x.zip`
 
@@ -39,6 +47,6 @@ a chrome extension to quickly download any media from [https://instagram.com/](i
 
 # uninstall
 
-<video mute controls style="height: 300px;" src="./demo/uninstall.mp4"></video>
+<img src="./demo/uninstall.gif" style="max-height: 350px;" />
 
 find this extension on [chrome://extensions/](chrome://extensions/), then click "Remove"
