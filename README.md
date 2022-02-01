@@ -7,19 +7,30 @@ a chrome extension to quickly download any media from [https://instagram.com/](i
 # features  
 
 - download-buttons on mainfeed, stories, userpages and generally any kind of feeds like tags or locations  
-- jump to lower/upper post on the mainfeed by "w" (upper post) or "s" (lower post)  
-- navigate left/right on carousels (with multiple pictures/videos) and in stories via the "d" (navigate right) and "a" (navigate left) keys.  
+- jump to lower/upper post on the mainfeed by `w` (upper post) or `s` (lower post)  
+- navigate left/right on carousels (with multiple pictures/videos) and in stories via the `d` (navigate right) and `a` (navigate left) keys.  
 - on the mainfeed or in stories, the enter-key can be pressed to trigger downloads
 
+
+downloaded videos/images will be saved in `Downloads/[username]`.  
+so for example if you download an image from [instagram.com/beeple_crap](https://www.instagram.com/beeple_crap/), it will be placed in `Downloads/beeple_cap/`
+
+
 <div style="height: 20px;"></div>
+
+### download from main-feed:  
 
 <img src="./demo/mainfeed-download.gif" style="max-height: 350px;" />
 
 <div style="height: 20px;"></div>
 
+### download from stories:  
+
 <img src="./demo/story-download.gif" style="max-height: 350px;" />
 
 <div style="height: 20px;"></div>
+
+### download from userpage:  
 
 <img src="./demo/userpage-download.gif" style="max-height: 350px;" />
 
