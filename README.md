@@ -13,7 +13,7 @@ a chrome extension to quickly download any media from [https://instagram.com/](i
 
 
 downloaded videos/images will be saved in `Downloads/[username]`.  
-so for example if you download an image from [instagram.com/beeple_crap](https://www.instagram.com/beeple_crap/), it will be placed in `Downloads/beeple_cap/`
+so for example if you download an image from [instagram.com/beeple_crap](https://www.instagram.com/beeple_crap/), it will be placed in `Downloads/beeple_crap/`
 
 
 <div style="height: 20px;"></div>
