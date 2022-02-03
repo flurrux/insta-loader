@@ -5,7 +5,7 @@
 	"scripts": {
 		"build:staticfiles": "python static_file_copy.py",
 		"build:parcel": "parcel build --no-source-maps --dist-dir ./dist",
-		"build": "npm run build:parcel && npm run build:staticfiles"
+		"build": "npm run build:parcel"
 	},
 	"source": [
 		"./app/src/index.ts",

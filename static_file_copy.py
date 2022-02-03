@@ -12,4 +12,4 @@ def main():
 	shutil.rmtree('./dist/icons', ignore_errors=True)
 	copy_folder('./app/icons', './dist/icons')
 
-main()	
+main()

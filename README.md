@@ -1,5 +1,11 @@
 
 
+# attention!  
+
+currently, videos downloaded from a carousel (that is a post with several images/videos that can be swiped) are of low quality, see https://github.com/flurrux/insta-loader/issues/6.  
+one workaround is to download those media through [jDownloader](https://jdownloader.org/download/index).  
+
+
 # about  
 
 a chrome extension to quickly download any media from [https://instagram.com/](instagram.com)  
