@@ -2,8 +2,10 @@
 
 # attention!  
 
-currently, videos downloaded from a carousel (that is a post with several images/videos that can be swiped) are of low quality, see https://github.com/flurrux/insta-loader/issues/6.  
+currently, videos downloaded from a carousel (that is a post with several images/videos that can be swiped) are sometimes of low quality, see https://github.com/flurrux/insta-loader/issues/6.  
+if video quality is important to you, better check on them.  
 one workaround is to download those media through [jDownloader](https://jdownloader.org/download/index).  
+i have **not** noticed similar quality loss in single-video posts (or any images for that matter), but it's always good to regularly verify this.  
 
 
 # about  
