@@ -2,6 +2,7 @@ import { InstaElementType, getElementTypesOnCurrentPage } from "../insta-info-ut
 import { createFileNameByUrl } from "../../lib/url-to-filename";
 import { downloadResource } from "../../lib/prompt-download-util";
 import { createElementByHTML } from "../../lib/html-util";
+import { isLeft } from "fp-ts/lib/Either";
 
 const getDownloadIconSrc = (iconAppendix: string): string => {
 	return chrome.extension.getURL(`icons/download-icon-${iconAppendix}.png`);
@@ -21,8 +22,11 @@ const getPromptDownloadIcon = (type: InstaElementType): string => {
 const downloadFileDirectly = async (getMediaSrc: () => Promise<string>) => {
 	try {
 		const src = await getMediaSrc();
-		const fileName = createFileNameByUrl(src);
-		await downloadResource(src, fileName);
+		const fileNameEither = createFileNameByUrl(src);
+		if (isLeft(fileNameEither)){
+			throw fileNameEither.left;
+		}
+		await downloadResource(src, fileNameEither.right);
 	}
 	catch (e) {
 		console.error(e);

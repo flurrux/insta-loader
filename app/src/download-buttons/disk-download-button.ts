@@ -1,3 +1,4 @@
+import { isLeft } from "fp-ts/lib/Either";
 import { createFileNameByUrl } from "../../lib/url-to-filename";
 import { download as downloadByChrome } from '../disk-writing/chrome-download';
 import { download as storeOnDisk } from '../disk-writing/disk-download';
@@ -33,7 +34,12 @@ const getDownloadMethod = (): Promise<DownloadMethod> => {
 const downloadInBackground = async (mediaInfo: MediaWriteInfo, loadingCallback: LoadingCallback): Promise<void> => {
 	const downloadMethod = await getDownloadMethod();
 	const mediaSrc = mediaInfo.src;
-	const fileName = createFileNameByUrl(mediaSrc);
+
+	const fileNameEither = createFileNameByUrl(mediaSrc);
+	if (isLeft(fileNameEither)){
+		throw fileNameEither.left;
+	}
+	const fileName = fileNameEither.right;
 
 	if (downloadMethod === "native") {
 		const ownUserName = getOwnUsername();

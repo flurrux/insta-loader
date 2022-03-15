@@ -13,7 +13,6 @@
 
 	"background": {
 		"scripts": [
-			"./src/disk-writing/disk-download-background.js",
 			"./src/disk-writing/chrome-download-background.js",
 			"./src/notifications-background.js"
 		],

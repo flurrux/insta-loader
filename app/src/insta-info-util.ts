@@ -1,5 +1,6 @@
 import { sort } from 'fp-ts/lib/Array';
 import { flow } from 'fp-ts/lib/function';
+import { max } from 'fp-ts/lib/NonEmptyArray';
 import { Ord } from 'fp-ts/lib/number';
 import { contramap, reverse } from 'fp-ts/lib/Ord';
 import { getCurrentPageType } from './insta-navigation-observer';
@@ -86,12 +87,19 @@ type VersionItem = {
 	height: number,
 	url: string
 };
-const versionHeightOrd = contramap<number, VersionItem>(item => item.height)(reverse(Ord));
+
+
+
+const getImageArea = (item: VersionItem) => item.width * item.height;
+const versionAreaOrd = contramap<number, VersionItem>(getImageArea)(reverse(Ord));
 
 function getBestQualityVersion(versions: VersionItem[]): string {
-	const versionsSorted = sort(versionHeightOrd)(versions);
+	// todo: replace sort by `max` (or `min`)
+	const versionsSorted = sort(versionAreaOrd)(versions);
 	return versionsSorted[0].url;
 }
+
+
 
 type VideoItem = {
 	"video_versions": VersionItem[],

@@ -10,7 +10,6 @@
 	"source": [
 		"./app/src/index.ts",
 		
-		"./app/src/disk-writing/disk-download-background.ts",
 		"./app/src/notifications-background.ts",
 		"./app/src/disk-writing/chrome-download-background.ts",
 
