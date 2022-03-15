@@ -9,13 +9,11 @@
 	},
 	"source": [
 		"./app/src/index.ts",
-		
 		"./app/src/notifications-background.ts",
 		"./app/src/disk-writing/chrome-download-background.ts",
-
 		"./app/manifest.json"
 	],
-  	"author": "Christian Hoffmann <christianhoffmann@outlook.com>",
+	"author": "Christian Hoffmann <christianhoffmann@outlook.com>",
 	"dependencies": {
 		"fp-ts": "^2.9.5",
 		"ramda": "^0.27.1"

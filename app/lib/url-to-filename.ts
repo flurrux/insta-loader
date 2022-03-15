@@ -24,18 +24,16 @@ import { Either, left, right } from "fp-ts/lib/Either";
 
 
 // example: [".mp4", ".jpg", ".webp"] -> "\.mp4|\.jpg|\.webp"
-// useful for constructing lookbehinds and also regexes that check if an url contains these file-extensions. 
 function makeFileExtensionRegexPart(fileExtensions: string[]): string {
 	return fileExtensions.map(ext => `\\${ext}`).join("|");
 }
 
 function makeFileNameRegex(fileExtensions: string[]){
-	// this regex looks for text between any forward slash "/" and some file-extension like ".jpg"
-	// (?<=\/) is a positive lookbehind, so the initial "/"
-	// .* matches any character except newlines
-	// the last part (?=${fileExtPart}) is a positive lookahead for our fileExtensions
+	// this regex looks for the longest string that doesn't contain a forward slash and ends in one of the file-extensions, like .jpg
+	// [^/]*? means as few characters as possible that are not a forward slash
+	// (?=${fileExtPart}) is a positive look-ahead for our fileExtensions
 	const fileExtPart = makeFileExtensionRegexPart(fileExtensions);
-	return new RegExp(`(?<=\/).*(?=${fileExtPart})`);
+	return new RegExp(`[^/]*(${fileExtPart})`);
 }
 
 function urlIncludesFileExtension(fileExtensions: string[], url: string) {
@@ -44,8 +42,11 @@ function urlIncludesFileExtension(fileExtensions: string[], url: string) {
 }
 
 const extractFileNameByRegexAndFileExtensionsAndUrl = (regex: RegExp, fileExtensions: string[]) => (url: string): Either<string, string> => {
-	const fileName = regex.exec(url);
-	if (fileName !== null) return right(fileName[0]);
+	const fileNameGroup = regex.exec(url);
+	if (fileNameGroup !== null){
+		const fileName = fileNameGroup[0];
+		return right(fileName);
+	}
 
 	// at this point, we could not extract a filename for unknown reason. 
 	// let's check if the url contains any of the file-extensions: 
