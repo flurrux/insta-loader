@@ -1,5 +1,6 @@
 import { Either, left, right } from "fp-ts/lib/Either";
 
+// todo: maybe move this module to some instagram-specific folder.
 
 /*
 	this module is for extracting the filename-part of a url like this: 
@@ -65,4 +66,5 @@ const makeFileNameExtractor = (fileExtensions: string[]) => {
 	)
 };
 
+// (url: string) => Either<string, string>
 export const createFileNameByUrl = makeFileNameExtractor([".mp4", ".jpg", ".webp"]);
