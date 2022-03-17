@@ -5,6 +5,7 @@ import { download as storeOnDisk } from '../disk-writing/disk-download';
 import { getFolderPath } from "../disk-writing/lookup-write-path";
 import { getOwnUsername } from "../insta-info-util";
 import { DownloadFeedbackButton } from "./download-feedback-button";
+import { getIconUrl } from "./icon-url";
 
 
 export interface MediaWriteInfo {
@@ -86,7 +87,7 @@ const downloadFileIndirectly = async (
 			notification: {
 				title: "download failed",
 				message,
-				iconUrl: chrome.extension.getURL("icons/insta-loader-icon-48.png")
+				iconUrl: getIconUrl("insta-loader-icon-48")
 			}
 		});
 

@@ -1,4 +1,5 @@
 import { getElementTypesOnCurrentPage } from '../insta-info-util';
+import { getIconUrl } from './icon-url';
 
 
 type DownloadState = "initial" | "loading" | "success" | "fail";
@@ -60,7 +61,7 @@ export class DownloadFeedbackButton {
 		let elementType = getElementTypesOnCurrentPage()[0];
 		let iconAppendix = elementType == "post" ? "dark" : "white";
 		const iconName = `${iconNames["initial"]}-${iconAppendix}`;
-		this._buttonImg.src = chrome.extension.getURL(`icons/${iconName}.png`);
+		this._buttonImg.src = getIconUrl(iconName)
 	}
 	_onDownloadStateChanged(){
 		const state = this._downloadState;
@@ -82,7 +83,7 @@ export class DownloadFeedbackButton {
 				let iconAppendix = elementType == "post" ? "dark" : "white";
 				iconName += `-${iconAppendix}`;
 			}
-			this._buttonImg.src = chrome.extension.getURL(`icons/${iconName}.png`);
+			this._buttonImg.src = getIconUrl(iconName);
 		}
 	}
 	_drawSpinner(){

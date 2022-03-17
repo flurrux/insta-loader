@@ -3,9 +3,10 @@ import { createFileNameByUrl } from "../../lib/url-to-filename";
 import { downloadResource } from "../../lib/prompt-download-util";
 import { createElementByHTML } from "../../lib/html-util";
 import { isLeft } from "fp-ts/lib/Either";
+import { getIconUrl } from "./icon-url";
 
 const getDownloadIconSrc = (iconAppendix: string): string => {
-	return chrome.extension.getURL(`icons/download-icon-${iconAppendix}.png`);
+	return getIconUrl(`download-icon-${iconAppendix}`);
 };
 const getPromptDownloadIcon = (type: InstaElementType): string => {
 	let elementTypes = getElementTypesOnCurrentPage();

@@ -1,42 +1,56 @@
 {
-	"manifest_version": 2,
-
-	"name": "insta-loader",
-	"description": "download buttons for instagram media.",
-	"version": "1.1",
-
-	"icons": { 
-		"16": "icons/insta-loader-icon-16.png",
-		"48": "icons/insta-loader-icon-48.png",
-		"128": "icons/insta-loader-icon-128.png" 
-	},
-
-	"background": {
-		"scripts": [
-			"./src/disk-writing/chrome-download-background.js",
-			"./src/notifications-background.js"
-		],
-		"persistent": false
-	},
-
-	"content_scripts": [
-		{
-			"matches": ["*://www.instagram.com/*"],
-			"js": ["./src/index.js"]
-		}
-	],
-
-	"permissions": [
-		"storage",
-		"nativeMessaging",
-		"tabs",
-		"notifications",
-		"downloads",
-		"*://www.instagram.com/*"
-	],
-
-	"web_accessible_resources": [
-		"icons/*.png",
-		"src/*", "lib/*"
-	]
+  "manifest_version": 3,
+  "name": "insta-loader",
+  "description": "download buttons for instagram media.",
+  "version": "1.2.0",
+  "icons": {
+    "16": "assets/icons/insta-loader-icon-16.png",
+    "48": "assets/icons/insta-loader-icon-48.png",
+    "128": "assets/icons/insta-loader-icon-128.png"
+  },
+  "background": {
+    "service_worker": "service-worker-loader.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "js": [
+        "assets/content-script-loader.index.ts.dd15a1d3.0b98dd7c.js"
+      ],
+      "matches": [
+        "*://www.instagram.com/*"
+      ]
+    }
+  ],
+  "permissions": [
+    "storage",
+    "nativeMessaging",
+    "tabs",
+    "notifications",
+    "downloads"
+  ],
+  "host_permissions": [
+    "*://www.instagram.com/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "matches": [
+        "*://www.instagram.com/*"
+      ],
+      "resources": [
+        "assets/icons/*.png"
+      ],
+      "use_dynamic_url": false
+    },
+    {
+      "matches": [
+        "*://www.instagram.com/*"
+      ],
+      "resources": [
+        "assets/vendor.5a3279bf.js",
+        "assets/index.ts.dd15a1d3.js"
+      ],
+      "use_dynamic_url": true
+    }
+  ]
 }
