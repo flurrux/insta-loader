@@ -85,7 +85,7 @@ def download_file_and_send_progress(path, url):
 	def callback(progress):
 		msg = '[{ "type": "progress", "data": { "progress": ' + str(progress) + ' } }]'
 		send_message(msg)
-		#for some fucked up reason, python refuses to send a message with the link or url in it, only progress is allowed. fuck you python.
+		# for some reason, python refuses to send a message with the link or url in it, only progress is allowed. 
 		#send_message('[{ "type": "progress", "data": { "link": ' + str(url) + ', "progress": ' + str(progress) + ' } }]')		
 		#send_message('[{ "type": "progress", "data": { "link": ' + url + ', "folderPath": ' + path + ', "progress": ' + str(progress) + ' } }]')
 
