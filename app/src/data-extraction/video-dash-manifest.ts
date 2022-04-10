@@ -1,8 +1,8 @@
-import { Either, tryCatch, left, right, isLeft } from "fp-ts/lib/Either";
+import { Either, isLeft, isRight, left, right, tryCatch } from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import { max, NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import { Ord } from "fp-ts/lib/number";
-import { fromNullable, none, Option } from "fp-ts/lib/Option";
+import { none, Option, some } from "fp-ts/lib/Option";
 import { contramap } from "fp-ts/lib/Ord";
 
 
@@ -144,24 +144,39 @@ type MediaData = {
 	bandwidth: number
 };
 
-type VideoData = MediaData & {
-	// dimensions: [number, number]
-};
+type DimensionsData = {
+	width: number, 
+	height: number
+}
+
+type VideoData = MediaData & DimensionsData;
 
 type AudioData = MediaData;
 
 type DashManifestData = {
 	video: VideoData,
-	audio: AudioData
+	audio: Option<AudioData>
 };
 
 
+type FailureWithContext<T> = {
+	failure: string,
+	context: T
+};
+type SuccessWithWarnings<S, W> = {
+	success: S, 
+	warnings: W
+};
+
 
 type ElementWithBandwidth = Element;
-function getBandwidthOfDocument(element: ElementWithBandwidth): number {
+function getBandwidthOfElement(element: ElementWithBandwidth): number {
 	return parseInt(element.getAttribute("bandwidth") as string);
 }
-const elementBandwidthOrd = contramap(getBandwidthOfDocument)(Ord);
+function hasElementBandwidthAttribute(element: Element): boolean {
+	return element.hasAttribute("bandwidth");
+}
+const elementBandwidthOrd = contramap(getBandwidthOfElement)(Ord);
 const maxBandwidthElement = max(elementBandwidthOrd);
 
 
@@ -176,90 +191,225 @@ const maxBandwidthElement = max(elementBandwidthOrd);
 
 	`BaseURL` does not need to be the first child!
 */
-function findBaseUrlContent(element: Element): Either<string, string> {
+function findBaseUrlContent(element: Element): Either<FailureWithContext<unknown>, string> {
 	const baseUrlNode = element.querySelector("BaseURL");
 	if (!baseUrlNode){
-		return left("element does not have a child of type BaseURL from which the url could be extracted.");
+		return left({
+			failure: "element does not have a child of type BaseURL from which the url could be extracted.",
+			context: element
+		});
 	}
 	const textContent = baseUrlNode.textContent;
 	if (textContent === null){
-		return left("found a BaseURL-node but its textContent is null");
+		return left({
+			failure: "found a BaseURL-node but its textContent is null",
+			context: { element, baseUrlNode }
+		});
 	}
 	return right(textContent);
 }
 
 
-// function getDimensionsOfVideoNode(element: Element): Option<[number, number]>{}
-
-function extractMediaDataFromApationSet(mediaSet: Element): Either<string, MediaData> {
-	if (mediaSet.children.length === 0) {
-		return left("AdaptionSet has zero child nodes");
+function getSizeOfVideoNode(element: Element): Either<FailureWithContext<Element>, DimensionsData> {
+	const widthRaw = element.getAttribute("width");
+	if (widthRaw === null){
+		return left({
+			failure: 'element has no "width" attribute',
+			context: element
+		});
 	}
+	const heightRaw = element.getAttribute("height");
+	if (heightRaw === null) {
+		return left({
+			failure: 'element has no "height" attribute',
+			context: element
+		});
+	}
+	return right({
+		width: parseInt(widthRaw),
+		height: parseInt(heightRaw)
+	});
+}
+
+
+type MediaDataAndElement = {
+	element: Element,
+	mediaData: MediaData
+};
+type AdaptationSetExtractionResult = Either<
+	FailureWithContext<unknown>, 
+	SuccessWithWarnings<MediaDataAndElement, unknown>
+>;
+
+function extractMediaDataFromApationSet(mediaSet: Element): AdaptationSetExtractionResult {
+	const warnings: FailureWithContext<unknown>[] = [];
+	
+	if (mediaSet.children.length === 0) {
+		return left({
+			failure: "AdaptationSet has zero child nodes",
+			context: mediaSet
+		});
+	}
+	const children = Array.from(mediaSet.children);
+	const childrenWithBandwidth = children.filter(hasElementBandwidthAttribute);
+	if (childrenWithBandwidth.length === 0){
+		return left({
+			failure: "none of the childnodes has a bandwidth attribute",
+			context: mediaSet
+		});
+	}
+	if (childrenWithBandwidth.length !== children.length){
+		warnings.push({
+			failure: "some children of this AdaptationSet have no bandwidth attribute",
+			context: mediaSet
+		});
+	}
+
 	const maxQualityNode = pipe(
-		Array.from(mediaSet.children) as NonEmptyArray<Element>,
-		// todo: verify that all childnodes have the attribute "bandwidth"
+		childrenWithBandwidth as NonEmptyArray<Element>,
 		maxBandwidthElement
 	);
 	const maxQualityUrlEither = findBaseUrlContent(maxQualityNode);
 	if (isLeft(maxQualityUrlEither)) return maxQualityUrlEither;
+		
+	const maxBandwidth = getBandwidthOfElement(maxQualityNode);
 
 	return right({
-		url: maxQualityUrlEither.right,
-		bandwidth: getBandwidthOfDocument(maxQualityNode)
+		success: {
+			element: maxQualityNode,
+			mediaData: {
+				url: maxQualityUrlEither.right,
+				bandwidth: maxBandwidth
+			}
+		},
+		warnings
 	});
 }
 
 
-function extractMediaData(doc: XMLDocument): Either<string, DashManifestData> {
-	const MDPRoot = doc.querySelector("MDP");
-	if (MDPRoot === null){
-		return left("XMLDocument doc does not have a MDP-node");
+
+
+
+type ExtractionFailure = string | FailureWithContext<unknown>;
+
+type DashManifestDataWithWarnings<W> = {
+	data: DashManifestData,
+	warnings: W[]
+};
+
+type ExtractionResult = Either<ExtractionFailure, DashManifestDataWithWarnings<unknown>>;
+
+export function extractMediaData(doc: XMLDocument): ExtractionResult {
+	
+	const warnings: unknown[] = [];
+	
+	const MPDRoot = doc.children[0];
+	if (MPDRoot === null){
+		return left({
+			failure: "XMLDocument doc does not have a MPD-node",
+			context: doc
+		});
 	}
-	const periodNodes = Array.from(MDPRoot.querySelectorAll("Period"));
+	const periodNodes = Array.from(MPDRoot.querySelectorAll("Period"));
 	if (periodNodes.length === 0){
-		return left("could not find any nodes with the 'Period' tag");
+		return left({
+			failure: "could not find any nodes with the 'Period' tag in MPD",
+			context: { doc, mpd: MPDRoot }
+		});
 	}
 	if (periodNodes.length > 1) {
-		// todo: unexpected number of periodNodes
+		warnings.push({
+			failure: "found more than 1 Period Element",
+			context: { doc, MPD: MPDRoot, periodNodes }
+		});
 	}
 	const periodNode = periodNodes[0];
-	const adaptionSets = Array.from(
-		periodNode.querySelectorAll("AdaptionSet")
+	const adaptationSets = Array.from(
+		periodNode.querySelectorAll("AdaptationSet")
 	);
 
-	if (adaptionSets.length === 0){
-		return left("found zero AdaptionSets");
+	if (adaptationSets.length === 0){
+		return left({
+			failure: "found no AdaptationSets in Period Element",
+			context: periodNode
+		});
 	}
-	if (adaptionSets.length === 0) {
-		// todo: unexpected number of AdaptionSets
+	if (adaptationSets.length > 2) {
+		warnings.push({
+			failure: "expected 2 AdaptationSets, 1 for video and 1 for audio, but got more than 2",
+			context: { doc, period: periodNode, adaptationSets }
+		});
 	}
 
-	const videoSetIndex = adaptionSets.findIndex(
+	const videoSetIndex = adaptationSets.findIndex(
 		(set) => set.hasAttribute("maxFrameRate")
 	);
 	if (videoSetIndex < 0){
-		return left("could not find any AdaptionSets that contain videos, or maybe the attribute 'maxFrameRate' is not indicative of AdaptionSets with videos anymore");
+		return left({
+			failure: "could not find any AdaptationSets that contain videos, or maybe the attribute 'maxFrameRate' is not indicative of AdaptationSets with videos anymore",
+			context: { doc, period: periodNode, adaptationSets }
+		});
 	}
-	const videoSet = adaptionSets[videoSetIndex];
-	// todo: verify that audioSet really contains audio
-	const audioSet = adaptionSets[videoSetIndex === 0 ? 1 : 0];
+	const videoSet = adaptationSets[videoSetIndex];
+	const audioSet = adaptationSets[videoSetIndex === 0 ? 1 : 0];
 
 	const videoDataEither = extractMediaDataFromApationSet(videoSet);
-	if (isLeft(videoDataEither)) return videoDataEither;
-	
+	if (isLeft(videoDataEither)){
+		return left({
+			failure: "error while trying to extract video data",
+			context: {
+				videoSet, 
+				subFailure: videoDataEither.left
+			}
+		});
+	}
+	const videoDataRight = videoDataEither.right;
+	// warnings.push(videoDataRight.warnings);
+	const videoNodeSizeEither = getSizeOfVideoNode(videoDataRight.success.element);
+	if (isLeft(videoNodeSizeEither)){
+		return left({
+			failure: "could not extract width or height from video",
+			context: {
+				doc, 
+				subContext: videoNodeSizeEither.left
+			}
+		});
+	}
+	const videoNodeSize = videoNodeSizeEither.right;
+	const videoData = videoDataRight.success.mediaData;
+
+	let audioDataOpt: Option<AudioData> = none;
 	const audioDataEither = extractMediaDataFromApationSet(audioSet);
-	if (isLeft(audioDataEither)) return audioDataEither;
+	if (isRight(audioDataEither)){
+		const audioDataRight = audioDataEither.right;
+		// warnings.push(audioDataRight.warnings);
+		audioDataOpt = some(audioDataRight.success.mediaData);
+	}
 
 	return right({
-		video: videoDataEither.right,
-		audio: audioDataEither.right
+		data: {
+			video: {
+				...videoData,
+				...videoNodeSize
+			},
+			audio: audioDataOpt
+		},
+		warnings
 	});
 }
 
-function parseDashManifestString(manifestString: string): Either<Error, XMLDocument> {
+
+export function parseDashManifestString(manifestString: string): Either<Error, XMLDocument> {
 	const parser = new DOMParser();
 	return tryCatch(
 		() => parser.parseFromString(manifestString, "text/xml"),
 		e => (e instanceof Error ? e : new Error('unknown error'))
 	);
+}
+
+export function parseDashManifestAndExtractData(manifestString: string): Either<ExtractionFailure | Error, DashManifestDataWithWarnings<unknown>> {
+
+	const docEither = parseDashManifestString(manifestString);
+	if (isLeft(docEither)) return docEither;
+	return extractMediaData(docEither.right);
 }

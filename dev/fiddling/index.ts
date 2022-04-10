@@ -1,0 +1,1 @@
+import './dash-manifest-test';

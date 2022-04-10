@@ -1,8 +1,11 @@
 import { sort } from 'fp-ts/lib/Array';
+import { isLeft } from 'fp-ts/lib/Either';
 import { flow } from 'fp-ts/lib/function';
 import { max } from 'fp-ts/lib/NonEmptyArray';
 import { Ord } from 'fp-ts/lib/number';
+import { isNone, isSome, none, Option, some } from 'fp-ts/lib/Option';
 import { contramap, reverse } from 'fp-ts/lib/Ord';
+import { parseDashManifestAndExtractData } from './data-extraction/video-dash-manifest';
 import { getCurrentPageType } from './insta-navigation-observer';
 
 export type InstaElementType = "preview" | "post" | "story";
@@ -121,8 +124,35 @@ function getVersions(item: VideoOrImgItem): VersionItem[] {
 
 const getMediaSrcFromSingleItem = flow(getVersions, getBestQualityVersion);
 
+function extractVideoAndAudioFromDashManifest(item: VideoOrImgItem): Option<VideoOrImgInfo> {
+	if (!("video_dash_manifest" in item)) return none;
+	const dashDataEither = parseDashManifestAndExtractData(
+		item["video_dash_manifest"]
+	);
+	if (isLeft(dashDataEither)) {
+		console.error(dashDataEither.left);
+		return none;
+	}
+	const dashData = dashDataEither.right;
+	if (dashData.warnings.length > 0) {
+		console.warn(dashData.warnings);
+	}
+	// if (isNone(dashData.data.audio)) return none;
+	return some({
+		type: "video",
+		src: dashData.data.video.url,
+		previewSrc: item["image_versions2"]["candidates"][0]["url"]
+		// videoSrc: dashData.data.video.url,
+		// audioSrc: dashData.data.audio.value.url
+	})
+}
+
 function getMediaInfoFromSingleItem(item: VideoOrImgItem): VideoOrImgInfo {
 	if ("video_versions" in item){
+		const manifestExtraction = extractVideoAndAudioFromDashManifest(item);
+		if (isSome(manifestExtraction)){
+			return manifestExtraction.value;
+		}
 		return {
 			type: "video",
 			src: getBestQualityVersion(item["video_versions"]),
@@ -147,6 +177,10 @@ function getMediaInfoFromCarousel(carousel: CarouselItem): VideoOrImgInfo[] {
 }
 
 
+// type SplitVideoAudioInfo = {
+// 	videoSrc: string,
+// 	audioSrc: string
+// };
 type VideoOrImgInfoBase = {
 	src: string,
 	previewSrc: string
@@ -223,27 +257,11 @@ const getMediaInfoFromResponseText = (responseText: string): MediaInfo => {
 	} as MediaInfo;
 };
 
-export const fetchMediaInfo = (url: string): Promise<MediaInfo> => {
-	return new Promise((resolve, reject) => {
-		const request = new XMLHttpRequest();
-	
-		function transferComplete(){
-			try {
-				const data = getMediaInfoFromResponseText(this.responseText);
-				resolve(data);
-			}
-			catch (e){
-				reject(e);
-			}
-		}
-	
-		request.addEventListener("load", transferComplete);
-		request.addEventListener("error", reject);
-		request.addEventListener("abort", reject);
-	
-		request.open("GET", url);
-		request.send();
-	});
+export async function fetchMediaInfo(url: string): Promise<MediaInfo> {
+	const fetchResult = await fetch(url);
+	const responseText = await fetchResult.text();
+	const data = getMediaInfoFromResponseText(responseText);
+	return data;
 };
 
 
@@ -392,9 +410,9 @@ function findMediaEntryByCollection(mediaArray: VideoOrImgInfo[], postElement: H
 	}
 }
 export function createMediaFetcherBySrcElement(postElement: HTMLElement) {
-	let currentMediaInfo: MediaInfo = null;
-	let currentPostType: PostType = null;
-	return async(): Promise<SingleMediaInfo> => {
+	let currentMediaInfo: (MediaInfo | null) = null;
+	let currentPostType: (PostType | null) = null;
+	return async(): Promise<SingleMediaInfo | undefined> => {
 		if (!currentPostType){
 			currentPostType = findTypeOfPost(postElement);
 		}

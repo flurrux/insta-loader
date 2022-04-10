@@ -5,7 +5,7 @@
 	how to make a fetch request: 
 	- pick some instagram post of your choice. important is that the url looks like "https://www.instagram.com/p/Cbcy9-boMZ8/"
 	- go to **any** instagram page, open dev-tools and execute the following command in the console: fetch("https://www.instagram.com/p/Cbcy9-boMZ8/").then(response => response.text()).then(console.log)
-	this request can not be made from any webpage, only from the instagram domain
+	this request cannot be made from any webpage, only from the instagram domain
 	- copy the result
 	- the relevant data occurs after the string "__additionalDataLoaded('/p/Cbcy9-boMZ8/', "
 	the second argument, an object, after '/p/Cbcy9-boMZ8/' is where all the interesting data resides and is denoted by `AdditionalData` in this module
