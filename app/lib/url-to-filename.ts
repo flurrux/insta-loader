@@ -13,7 +13,7 @@ import { Either, left, right } from "fp-ts/lib/Either";
 
 	---
 	
-	currently there are only 3 supported file-extensions: .mp4, .jpg, and .webp
+	currently there are only 4 supported file-extensions: .mp4, .jpg, .webp, .webm
 	i've revamped this module after discovering that instagram added .webp files and this led to downloaded images being named "undefined". 
 	it would certainly be more robust to find a regex for arbitrary file-extensions but i don't know how at this point. next time instagram adds another filetype maybe. 
 
@@ -67,4 +67,4 @@ const makeFileNameExtractor = (fileExtensions: string[]) => {
 };
 
 // (url: string) => Either<string, string>
-export const createFileNameByUrl = makeFileNameExtractor([".mp4", ".jpg", ".webp"]);
+export const createFileNameByUrl = makeFileNameExtractor([".mp4", ".jpg", ".webp", ".webm"]);
