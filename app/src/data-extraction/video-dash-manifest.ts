@@ -351,7 +351,6 @@ export function extractMediaData(doc: XMLDocument): ExtractionResult {
 		});
 	}
 	const videoSet = adaptationSets[videoSetIndex];
-	const audioSet = adaptationSets[videoSetIndex === 0 ? 1 : 0];
 
 	const videoDataEither = extractMediaDataFromApationSet(videoSet);
 	if (isLeft(videoDataEither)){
@@ -379,11 +378,14 @@ export function extractMediaData(doc: XMLDocument): ExtractionResult {
 	const videoData = videoDataRight.success.mediaData;
 
 	let audioDataOpt: Option<AudioData> = none;
-	const audioDataEither = extractMediaDataFromApationSet(audioSet);
-	if (isRight(audioDataEither)){
-		const audioDataRight = audioDataEither.right;
-		// warnings.push(audioDataRight.warnings);
-		audioDataOpt = some(audioDataRight.success.mediaData);
+	if (adaptationSets.length > 1){
+		const audioSet = adaptationSets[videoSetIndex === 0 ? 1 : 0];
+		const audioDataEither = extractMediaDataFromApationSet(audioSet);
+		if (isRight(audioDataEither)){
+			const audioDataRight = audioDataEither.right;
+			// warnings.push(audioDataRight.warnings);
+			audioDataOpt = some(audioDataRight.success.mediaData);
+		}
 	}
 
 	return right({
