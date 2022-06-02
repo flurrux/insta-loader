@@ -49,7 +49,7 @@ const invokeViewModeChangeListener = (data: InstaNavigationChangeData) => {
 //main feed || stories || other
 let currentHref: string = window.location.href;
 let currentPageType: InstaPageType = getCurrentPageType();
-const reactRoot: Element = document.querySelector("#react-root");
+const reactRoot: Element = document.querySelector("#mount_0_0_8N");
 const onRootMutation = () => {
 	const newHref = window.location.href;
 	if (newHref === currentHref) {
@@ -66,4 +66,4 @@ const onRootMutation = () => {
 	};
 	invokeViewModeChangeListener(naviData);
 };
-(new MutationObserver(onRootMutation)).observe(reactRoot, { childList: true, subtree: true })
+// (new MutationObserver(onRootMutation)).observe(reactRoot, { childList: true, subtree: true })

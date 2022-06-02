@@ -163,6 +163,8 @@ function onMutations(mutationArray: MutationRecord[]){
 
 function startObservation(){
 	var observer = new MutationObserver(onMutations);
+	console.log("start observation ####");
+	console.log(document);
 	observer.observe(document, { childList: true, subtree: true });
 }
 

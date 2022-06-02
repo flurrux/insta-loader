@@ -2,11 +2,24 @@
 
 # attention!  
 
-currently, videos downloaded from a carousel (that is a post with several images/videos that can be swiped) do **not** have sound, sorry about that.  
-please see https://github.com/flurrux/insta-loader/issues/6 for more details.  
-i suggest using [jDownloader](https://jdownloader.org/download/index) as a workaround.  
-(be careful to check/uncheck the right boxes when installing jDownloader, they tend to sneak in adware)
+instagram made an update which breaks this extension badly.  
+with the latest version (v1.2.1), all download buttons are gone.  
+i've managed to bring them back, but trying to download media from any post will result in an error.  
+luckily, stories can still be downloaded without problem.  
+with the release v1.2.2 you should at least be able to download stories.  
 
+i've seen a couple other instagram-scraper experience the same issue:  
+https://github.com/arc298/instagram-scraper/issues/805
+https://github.com/instaloader/instaloader/issues/1553
+
+the problem is, that when you do a fetch request for some instagram post, there is no source data for images and videos anymore.  
+
+one immediate workaround for images is to simply download from the source in the browser.  
+
+videos are way more tricky since they use hard-to-download blob sources.  
+it should in principle be possible to grab all frames from a video and re-encode it. inefficient? yes! but as a last resort it may do.  
+
+will make another release as soon as i can!
 
 # about  
 
