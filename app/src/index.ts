@@ -1,6 +1,3 @@
-import './download-extension/combined-download-extension';
-import './post-scroll-navigation';
-import './horizontal-navigation';
+import './download-button-injection/combined-download-extension';
+import './navigation-by-keys/navigation-setup';
 import './download-shortcut';
-// import './story-scroll-persistence';
-// import './linkify-stories';

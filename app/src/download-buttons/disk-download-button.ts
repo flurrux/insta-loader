@@ -1,9 +1,9 @@
 import { isLeft } from "fp-ts/lib/Either";
 import { createFileNameByUrl } from "../../lib/url-to-filename";
+import { getOwnUsername } from "../data-extraction/directly-in-browser/own-username";
 import { download as downloadByChrome } from '../disk-writing/chrome-download';
 import { download as storeOnDisk } from '../disk-writing/disk-download';
 import { getFolderPath } from "../disk-writing/lookup-write-path";
-import { getOwnUsername } from "../insta-info-util";
 import { DownloadFeedbackButton } from "./download-feedback-button";
 import { getIconUrl } from "./icon-url";
 

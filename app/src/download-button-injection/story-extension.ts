@@ -1,12 +1,13 @@
 import { createElementByHTML, querySelectorAncestor } from "../../lib/html-util";
+import { getSrcOfStory, getUsernameOfStory } from "../data-extraction/directly-in-browser/story";
 import { createDiskDownloadButton, DiskDownloadButtonOptions, MediaWriteInfo } from "../download-buttons/disk-download-button";
 import { downloadKey, requestDownloadByButton } from "../download-shortcut";
-import { getSrcOfStory, getUsernameOfStory } from "../insta-info-util";
 
 
 const findCloseStoryElement = (storyEl: HTMLElement): HTMLElement => {
 	return storyEl.querySelector(".coreSpriteCloseLight").children[0] as HTMLElement;
 };
+
 const getMediaSrcOfStoryElement = (storyEl: HTMLElement): Promise<MediaWriteInfo> => {
 	try {
 		const src = getSrcOfStory(storyEl);
@@ -17,6 +18,7 @@ const getMediaSrcOfStoryElement = (storyEl: HTMLElement): Promise<MediaWriteInfo
 		return Promise.reject(e);
 	}
 };
+
 const getStoryDownloadElementStyle = (storyEl: HTMLElement): Partial<CSSStyleDeclaration> => {
 	const closeSprite = findCloseStoryElement(storyEl);
 	const size = closeSprite.clientHeight + "px";
@@ -33,6 +35,7 @@ interface StoryPauseHandle {
 	keepPaused: () => void,
 	continue: () => void
 };
+
 const createStoryPauseHandle = (): StoryPauseHandle => {
 	let _storyPaused = false;
 	const video = document.querySelector("video");

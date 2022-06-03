@@ -1,4 +1,4 @@
-import { getElementTypesOnCurrentPage } from '../insta-info-util';
+import { getElementTypesOnCurrentPage } from '../data-extraction/is-currently-post-story-or-preview';
 import { getIconUrl } from './icon-url';
 
 

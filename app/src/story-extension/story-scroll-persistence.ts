@@ -6,8 +6,8 @@
 */
 
 
+import { findStoryElement } from '../data-extraction/directly-in-browser/story';
 import { pageType, subscribeToNavigation, getCurrentPageType } from '../insta-navigation-observer';
-import { findStoryElement } from '../insta-info-util';
 
 
 let scrollElement: Element = null;

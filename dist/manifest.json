@@ -15,7 +15,7 @@
   "content_scripts": [
     {
       "js": [
-        "assets/content-script-loader.index.ts.acda13c1.698e86fd.js"
+        "assets/content-script-loader.index.ts.93555271.0cbd74b4.js"
       ],
       "matches": [
         "*://www.instagram.com/*"
@@ -47,8 +47,8 @@
         "*://www.instagram.com/*"
       ],
       "resources": [
-        "assets/vendor.8cd73852.js",
-        "assets/index.ts.acda13c1.js"
+        "assets/vendor.a19b4b9f.js",
+        "assets/index.ts.93555271.js"
       ],
       "use_dynamic_url": true
     }

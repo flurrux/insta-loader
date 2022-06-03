@@ -3,7 +3,7 @@
 
 	"name": "insta-loader",
 	"description": "download buttons for instagram media.",
-	"version": "1.2.1",
+	"version": "1.2.3",
 
 	"icons": { 
 		"16": "assets/icons/insta-loader-icon-16.png",

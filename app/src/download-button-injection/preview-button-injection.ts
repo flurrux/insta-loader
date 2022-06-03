@@ -1,8 +1,8 @@
 import { MediaWriteInfo, createDiskDownloadButton } from "../download-buttons/disk-download-button";
-import { fetchMediaInfo } from "../insta-info-util";
+import { fetchMediaInfo } from "../data-extraction/insta-info-util";
 import { createElementByHTML } from "../../lib/html-util";
 
-const getMediaSrcOfPreviewElement = async (previewEl: HTMLElement): Promise<MediaWriteInfo> => {
+async function getMediaSrcOfPreviewElement(previewEl: HTMLElement): Promise<MediaWriteInfo> {
 	const linkElement = previewEl.querySelector("a");
 	if (linkElement === null) {
 		throw "link-element not found";
@@ -14,14 +14,17 @@ const getMediaSrcOfPreviewElement = async (previewEl: HTMLElement): Promise<Medi
 	let username = data.username;
 	return { username, src };
 };
+
 export const injectDownloadButtonsIntoPreview = (previewEl: HTMLElement) => {
 	const previewOverlay = createElementByHTML(`
-		<div style="
+		<div 
+			style="
 				width: 100%;
 				position: absolute;
 				left: 0px;
 				bottom: 0px;
-				flex-direction: row;"
+				flex-direction: row;
+			"
 		>
 		</div>
 	`);

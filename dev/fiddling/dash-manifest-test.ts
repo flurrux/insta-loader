@@ -1,4 +1,4 @@
-import { parseDashManifestAndExtractData } from "../../app/src/data-extraction/video-dash-manifest";
+import { parseDashManifestAndExtractData } from "../../app/src/data-extraction/from-fetch-response/video-dash-manifest";
 
 const manifestRaw = `
 	<MPD 
