@@ -15,8 +15,9 @@
   "content_scripts": [
     {
       "js": [
-        "assets/content-script-loader.index.ts.93555271.0cbd74b4.js"
+        "assets/content-script-loader.index.ts.785a2638.bce1e527.js"
       ],
+      "run_at": "document_start",
       "matches": [
         "*://www.instagram.com/*"
       ]
@@ -27,10 +28,12 @@
     "nativeMessaging",
     "tabs",
     "notifications",
-    "downloads"
+    "downloads",
+    "webRequest"
   ],
   "host_permissions": [
-    "*://www.instagram.com/*"
+    "*://www.instagram.com/*",
+    "*://*.fbcdn.net/*"
   ],
   "web_accessible_resources": [
     {
@@ -48,7 +51,7 @@
       ],
       "resources": [
         "assets/vendor.a19b4b9f.js",
-        "assets/index.ts.93555271.js"
+        "assets/index.ts.785a2638.js"
       ],
       "use_dynamic_url": true
     }

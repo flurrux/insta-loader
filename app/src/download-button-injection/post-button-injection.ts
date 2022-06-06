@@ -2,6 +2,9 @@ import { createElementByHTML } from "../../lib/html-util";
 import { createDiskDownloadButton, MediaWriteInfo } from "../download-buttons/disk-download-button";
 import { getMediaSrcByHtml } from "../data-extraction/directly-in-browser/media-extraction";
 import { getPreviewSrcOfPost } from "../data-extraction/directly-in-browser/post-preview";
+import { findTypeOfPost } from "../data-extraction/directly-in-browser/post-type";
+import { getFirstCollectedVideoUrl } from "../video-request-collection";
+import { findUsernameInPost } from "../data-extraction/directly-in-browser/post-username";
 
 
 function findSavePostElement(postElement: HTMLElement) {
@@ -38,6 +41,24 @@ const getMediaSrcOfPostElement = (postElement: HTMLElement): Promise<MediaWriteI
 	// if (!previewSrc) {
 	// 	return Promise.reject("preview-src not found");
 	// }
+	const postType = findTypeOfPost(postElement);
+	console.log(postType);
+	if (postType === "video"){
+		const collectedUrl = getFirstCollectedVideoUrl();
+		console.log(collectedUrl);
+		if (!collectedUrl){
+			return Promise.reject("no video-url collected so far");
+		}
+		const username = findUsernameInPost(postElement);
+		if (!username){
+			return Promise.reject("couldn't find username in post");
+		}
+		return Promise.resolve({
+			src: collectedUrl,
+			username
+		});
+	}
+
 	const data = getMediaSrcByHtml(postElement);
 	if (!data) {
 		return Promise.reject("media-src not found");

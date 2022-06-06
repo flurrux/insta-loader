@@ -18,6 +18,7 @@
 
 	"content_scripts": [
 		{
+			"run_at": "document_start",
 			"matches": ["*://www.instagram.com/*"],
 			"js": ["app/src/index.ts"]
 		}
@@ -28,11 +29,13 @@
 		"nativeMessaging",
 		"tabs",
 		"notifications",
-		"downloads"
+		"downloads",
+		"webRequest"
 	],
 
 	"host_permissions": [
-		"*://www.instagram.com/*"
+		"*://www.instagram.com/*",
+		"*://*.fbcdn.net/*"
 	],
 
 	"web_accessible_resources": [{
