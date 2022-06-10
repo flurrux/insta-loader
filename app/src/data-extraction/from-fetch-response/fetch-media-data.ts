@@ -75,22 +75,12 @@ function getMediaInfoFromCarousel(carousel: CarouselItem): VideoOrImgInfo[] {
 	return carousel["carousel_media"].map(getMediaInfoFromSingleItem)
 }
 
-
-const getMediaInfoFromResponseText = (responseText: string): MediaInfo => {
-	const dataText = /(?<=window\.__additionalDataLoaded\(.*',).*(?=\);<)/.exec(responseText);
-	if (!dataText) throw '__additionalDataLoaded not found on window';
-	if (!Array.isArray(dataText)) {
-		console.log(dataText);
-		throw 'dataText is not an array! (see above log what it actually is, i have no idea)';
-	}
-
-	let dataObject = JSON.parse(dataText[0]);
-
-	if (!dataObject.items) {
-		console.log(dataObject);
+export function getMediaInfoFromResponseObject(responseObject: object): MediaInfo {
+	if (!responseObject.items) {
+		console.log(responseObject);
 		throw 'items not found in dataObject (see above log)';
 	}
-	const items = dataObject.items;
+	const items = responseObject.items;
 	if (items.length === 0) {
 		throw 'items are empty';
 	}
@@ -129,6 +119,18 @@ const getMediaInfoFromResponseText = (responseText: string): MediaInfo => {
 		mediaArray,
 		username
 	} as MediaInfo;
+}
+
+const getMediaInfoFromResponseText = (responseText: string): MediaInfo => {
+	const dataText = /(?<=window\.__additionalDataLoaded\(.*',).*(?=\);<)/.exec(responseText);
+	if (!dataText) throw '__additionalDataLoaded not found on window';
+	if (!Array.isArray(dataText)) {
+		console.log(dataText);
+		throw 'dataText is not an array! (see above log what it actually is, i have no idea)';
+	}
+
+	let dataObject = JSON.parse(dataText[0]);
+	return getMediaInfoFromResponseObject(dataObject);
 };
 
 export async function fetchMediaInfo(url: string): Promise<MediaInfo> {

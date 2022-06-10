@@ -1,6 +1,6 @@
 import { queryMediaElement } from "./query-media-element";
 
-type PostType = "carousel" | "video" | "image";
+type PostType = "collection" | "video" | "image";
 
 function postIsCarousel(postElement: HTMLElement, mediaElement: HTMLElement): boolean {
 	let ancestorElement = mediaElement;
@@ -21,6 +21,6 @@ export function findTypeOfPost(postElement: HTMLElement): PostType | null {
 		console.log(postElement.innerHTML);
 		return null;
 	}
-	if (postIsCarousel(postElement, mediaElement)) return "carousel";
+	if (postIsCarousel(postElement, mediaElement)) return "collection";
 	return mediaElement.tagName === "VIDEO" ? "video" : "image";
 };

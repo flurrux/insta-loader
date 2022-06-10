@@ -53,14 +53,21 @@ export function findMediaEntryByImage(imgEl: HTMLImageElement): ImgInfo {
 
 export function findMediaEntryByCarousel(mediaArray: VideoOrImgInfo[], postElement: HTMLElement) {
 	const collectionElement = getCurrentCarouselElement(postElement);
-	if (!collectionElement) return null;
+	if (!collectionElement){
+		console.warn("couldn't find carousel element");
+		return null;
+	}
 	const mediaElement = queryMediaElement(collectionElement);
-	if (!mediaElement) return null;
+	if (!mediaElement){
+		console.warn("couldn't find image or video");
+		return null;
+	}
 	if (mediaElement.matches("video")) {
 		return findMediaEntryByVideo(mediaArray, mediaElement as HTMLVideoElement);
 	}
 	if (mediaElement.matches("img")) {
 		return findMediaEntryByImage(mediaElement as HTMLImageElement);
 	}
+	console.warn("mediaElement does not match video or img");
 	return null;
 }

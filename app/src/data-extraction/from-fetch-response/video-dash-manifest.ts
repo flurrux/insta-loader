@@ -342,11 +342,15 @@ export function extractMediaData(doc: XMLDocument): ExtractionResult {
 	}
 
 	const videoSetIndex = adaptationSets.findIndex(
-		(set) => set.hasAttribute("maxFrameRate")
+		(set) => {
+			const contentType = set.getAttribute("contentType");
+			if (!contentType) return false;
+			return contentType === "video";
+		}
 	);
 	if (videoSetIndex < 0){
 		return left({
-			failure: "could not find any AdaptationSets that contain videos, or maybe the attribute 'maxFrameRate' is not indicative of AdaptationSets with videos anymore",
+			failure: "could not find any AdaptationSets that contain videos, or maybe checking that the attribute 'contentType' is equal to 'video' does not work anymore",
 			context: { doc, period: periodNode, adaptationSets }
 		});
 	}
@@ -410,7 +414,7 @@ export function parseDashManifestString(manifestString: string): Either<Error, X
 }
 
 export function parseDashManifestAndExtractData(manifestString: string): Either<ExtractionFailure | Error, DashManifestDataWithWarnings<unknown>> {
-
+	console.log(manifestString);
 	const docEither = parseDashManifestString(manifestString);
 	if (isLeft(docEither)) return docEither;
 	return extractMediaData(docEither.right);

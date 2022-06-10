@@ -35,7 +35,7 @@
 
 	"host_permissions": [
 		"*://www.instagram.com/*",
-		"*://*.fbcdn.net/*"
+		"*://i.instagram.com/api/v1/media/*"
 	],
 
 	"web_accessible_resources": [{

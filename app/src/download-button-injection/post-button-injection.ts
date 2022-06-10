@@ -1,10 +1,13 @@
+import { isLeft } from "fp-ts/lib/Either";
 import { createElementByHTML } from "../../lib/html-util";
-import { createDiskDownloadButton, MediaWriteInfo } from "../download-buttons/disk-download-button";
 import { getMediaSrcByHtml } from "../data-extraction/directly-in-browser/media-extraction";
-import { getPreviewSrcOfPost } from "../data-extraction/directly-in-browser/post-preview";
-import { findTypeOfPost } from "../data-extraction/directly-in-browser/post-type";
-import { getFirstCollectedVideoUrl } from "../video-request-collection";
-import { findUsernameInPost } from "../data-extraction/directly-in-browser/post-username";
+import { getHrefOfPost } from "../data-extraction/directly-in-browser/post-href";
+import { createMediaFetcherBySrcElementAndFetchFunc } from "../data-extraction/from-fetch-response/cached-media-fetching";
+import { getMediaInfoFromResponseObject } from "../data-extraction/from-fetch-response/fetch-media-data";
+import { fetchMediaInfo } from "../data-extraction/instagram-api/media-info";
+import { createDiskDownloadButton, MediaWriteInfo } from "../download-buttons/disk-download-button";
+import { makeLinkButton } from "../download-buttons/link-button";
+import { getCurrentPageType } from "../insta-navigation-observer";
 
 
 function findSavePostElement(postElement: HTMLElement) {
@@ -41,23 +44,6 @@ const getMediaSrcOfPostElement = (postElement: HTMLElement): Promise<MediaWriteI
 	// if (!previewSrc) {
 	// 	return Promise.reject("preview-src not found");
 	// }
-	const postType = findTypeOfPost(postElement);
-	console.log(postType);
-	if (postType === "video"){
-		const collectedUrl = getFirstCollectedVideoUrl();
-		console.log(collectedUrl);
-		if (!collectedUrl){
-			return Promise.reject("no video-url collected so far");
-		}
-		const username = findUsernameInPost(postElement);
-		if (!username){
-			return Promise.reject("couldn't find username in post");
-		}
-		return Promise.resolve({
-			src: collectedUrl,
-			username
-		});
-	}
 
 	const data = getMediaSrcByHtml(postElement);
 	if (!data) {
@@ -65,6 +51,28 @@ const getMediaSrcOfPostElement = (postElement: HTMLElement): Promise<MediaWriteI
 	}
 	return Promise.resolve(data);
 };
+
+async function fetchRecentMediaAndExtract(){
+	const mediaInfoJsonEither = await fetchMediaInfo();
+	if (isLeft(mediaInfoJsonEither)){
+		throw mediaInfoJsonEither.left;
+	}
+	const extractedInfo = getMediaInfoFromResponseObject(
+		mediaInfoJsonEither.right
+	);
+	return extractedInfo;
+}
+
+function makeMediaSrcFetcher(postElement: HTMLElement){
+	const pageType = getCurrentPageType();
+	console.log("pagetype", pageType);
+	if (pageType === "post"){
+		return createMediaFetcherBySrcElementAndFetchFunc
+			(fetchRecentMediaAndExtract)
+			(postElement)
+	}
+	return () => getMediaSrcOfPostElement(postElement);
+}
 
 export function injectDownloadButtonsIntoPost(postElement: HTMLElement){
 	const sectionEl = postElement.querySelector("section");
@@ -84,13 +92,20 @@ export function injectDownloadButtonsIntoPost(postElement: HTMLElement){
 			"
 		></div>
 	`);
-
-	const getMediaSrc = () => getMediaSrcOfPostElement(postElement);
-	// const getMediaSrc = createMediaFetcherBySrcElement(postElement);
 	
+	const getMediaSrc = makeMediaSrcFetcher(postElement);
+	// const getMediaSrc = () => getMediaSrcOfPostElement(postElement);
+	// const getMediaSrc = createMediaFetcherBySrcElement(postElement);
 	const downloadButton = createDiskDownloadButton(getMediaSrc);
+
 	applyPostDownloadElementStyle(postElement, downloadButton);
 	bar.appendChild(downloadButton);
 
 	sectionEl.insertAdjacentElement("beforeend", bar);
+
+	if (getCurrentPageType() === "mainFeed") {
+		const linkButton = makeLinkButton(getHrefOfPost(postElement));
+		applyPostDownloadElementStyle(postElement, linkButton.firstElementChild);
+		sectionEl.appendChild(linkButton);
+	}
 };

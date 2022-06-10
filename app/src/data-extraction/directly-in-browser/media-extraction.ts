@@ -27,7 +27,7 @@ export function getMediaSrcByHtml(postElement: HTMLElement){
 		return null;
 	}
 
-	const srcData = postType === "carousel" ? getCarouselMediaByPostElement(postElement) : getMediaSrcByPostElement(postElement);
+	const srcData = postType === "collection" ? getCarouselMediaByPostElement(postElement) : getMediaSrcByPostElement(postElement);
 	
 	if (!srcData){
 		console.warn("could not find media-src of post");
