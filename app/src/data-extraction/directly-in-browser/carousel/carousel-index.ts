@@ -7,7 +7,12 @@ function getGrandParent(element: HTMLElement) {
 	return grandParent;
 }
 
-export function getCurrentCarouselIndexByList(list: HTMLUListElement): number | null {
+type IndexAndChild = {
+	index: number,
+	child: HTMLElement
+}
+
+export function getCurrentCarouselIndexAndChildByList(list: HTMLUListElement): IndexAndChild | null {
 	const positionReferenceElement = getGrandParent(list);
 	if (!positionReferenceElement) return null;
 
@@ -22,16 +27,19 @@ export function getCurrentCarouselIndexByList(list: HTMLUListElement): number | 
 		const listItem = list.children[i];
 		const curItemX = listItem.getBoundingClientRect().x;
 		if (Math.abs(visibleX - curItemX) < listItemWidth / 2) {
-			return i - 1;
+			return {
+				index: i - 1,
+				child: listItem as HTMLElement
+			}
 		}
 	}
-	return -1;
+	return null;
 }
 
-export function getCurrentCarouselIndexAndList(postEl: HTMLElement) {
+export function getCurrentCarouselIndexWithListAndChild(postEl: HTMLElement) {
 	const list = postEl.querySelector("ul");
-	if (list === null) return null;
-	const index = getCurrentCarouselIndexByList(list);
-	if (index === null) return null;
-	return { list, index }
+	if (!list) return null;
+	const indexAndChild = getCurrentCarouselIndexAndChildByList(list);
+	if (!indexAndChild) return null;
+	return { list, ...indexAndChild }
 }

@@ -344,13 +344,14 @@ export function extractMediaData(doc: XMLDocument): ExtractionResult {
 	const videoSetIndex = adaptationSets.findIndex(
 		(set) => {
 			const contentType = set.getAttribute("contentType");
-			if (!contentType) return false;
-			return contentType === "video";
+			if (contentType === "video") return true
+			if (set.hasAttribute("maxFrameRate")) true;
+			return false;
 		}
 	);
 	if (videoSetIndex < 0){
 		return left({
-			failure: "could not find any AdaptationSets that contain videos, or maybe checking that the attribute 'contentType' is equal to 'video' does not work anymore",
+			failure: "could not find any AdaptationSets that contain videos, or maybe the attributes 'contentType' and 'maxFrameRate' do not work anymore.",
 			context: { doc, period: periodNode, adaptationSets }
 		});
 	}

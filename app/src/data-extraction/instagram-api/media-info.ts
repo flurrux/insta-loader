@@ -1,16 +1,12 @@
-import { isLeft, right } from "fp-ts/lib/Either";
-import { findMediaIdOnPostPage } from "../directly-in-browser/media-id";
+import { right } from "fp-ts/lib/Either";
 
 function makeMediaFetchUrl(mediaId: string): string {
 	return `https://i.instagram.com/api/v1/media/${mediaId}/info/`
 }
 
-export async function fetchMediaInfo() {
-	const mediaIdEither = findMediaIdOnPostPage();
-	if (isLeft(mediaIdEither)) return mediaIdEither;
-	const mediaId = mediaIdEither.right;
+export async function fetchMediaInfo(mediaID: string) {
 	const response = await fetch(
-		makeMediaFetchUrl(mediaId),
+		makeMediaFetchUrl(mediaID),
 		{
 			credentials: "include",
 			headers: { // hopefully these header values are always valid and do not depend on the user or on time

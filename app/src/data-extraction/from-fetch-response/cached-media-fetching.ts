@@ -1,31 +1,64 @@
+import { Either, isLeft } from "fp-ts/lib/Either";
 import { getHrefOfPost } from "../directly-in-browser/post-href";
-import { findTypeOfPost } from "../directly-in-browser/post-type";
-import { fetchMediaInfo } from "./fetch-media-data";
+import { findTypeofPostWithCollectionDetails, PostTypeWithCollectionDetails } from "../directly-in-browser/post-type-with-collection-details";
+import { findUsernameInPost } from "../directly-in-browser/post-username";
+import { queryMediaElement } from "../directly-in-browser/query-media-element";
+import { getMediaSrc } from "../directly-in-browser/src-from-img-or-video";
 import { findMediaEntryByCarousel } from "./find-carousel-item";
-import { MediaInfo, PostType, SingleMediaInfo } from "./types";
+import { MediaInfo, SingleMediaInfo } from "./types";
 
-type FetchFunc = (url: string) => Promise<MediaInfo>;
+
+function isImagePostOrImageCarouselItem(postType: PostTypeWithCollectionDetails){
+	if (postType.type !== "collection"){
+		return postType.type === "image";
+	}
+	return postType.mediaElement instanceof HTMLImageElement;
+}
+
+
+type FetchFunc = (url: string) => Promise<Either<unknown, MediaInfo>>;
 
 export const createMediaFetcherBySrcElementAndFetchFunc = (fetchFunc: FetchFunc) => (postElement: HTMLElement) => {
 	let currentMediaInfo: (MediaInfo | null) = null;
-	let currentPostType: (PostType | null) = null;
+	let currentPostType: (PostTypeWithCollectionDetails | null) = null;
 	
 	// the following function may be called several times, for example from carousel elements. the fetch reponse for a carousel element contains all the sources for each carousel item. we don't have to fetch again if another item from the same carousel is downloaded next.  
 	
 	return async (): Promise<SingleMediaInfo | undefined> => {
 		if (!currentPostType) {
-			currentPostType = findTypeOfPost(postElement);
-			console.log("currnet post type", currentPostType);
+			const currentPostTypeEither = findTypeofPostWithCollectionDetails(postElement);
+			if (isLeft(currentPostTypeEither)){
+				console.warn(currentPostTypeEither);
+				return;
+			}
+			currentPostType = currentPostTypeEither.right;
 		}
+
+		if (isImagePostOrImageCarouselItem(currentPostType)){
+			const imageElement = (currentPostType.type === "collection" ? currentPostType.mediaElement : queryMediaElement(postElement)) as HTMLImageElement;
+			const username = findUsernameInPost(postElement);
+			return {
+				username: username as string, 
+				...getMediaSrc(imageElement)
+			}
+		}
+
 		if (!currentMediaInfo) {
 			const postHref = getHrefOfPost(postElement);
-			if (!postHref) return;
-			currentMediaInfo = await fetchFunc(postHref);
+			if (!postHref){
+				console.warn("could not find href of post");
+				return;
+			}
+
+			const fetchResult = await fetchFunc(postHref);
+			if (isLeft(fetchResult)){
+				console.warn(fetchResult.left);
+				return;
+			}
+			currentMediaInfo = fetchResult.right;
 		}
-		console.log("fetched!", currentPostType);
-		const username = currentMediaInfo.username;
-		const mediaArray = currentMediaInfo.mediaArray;
-		const videoOrImgInfo = currentPostType === "collection" ? findMediaEntryByCarousel(mediaArray, postElement) : mediaArray[0];
+		const { username, mediaArray } = currentMediaInfo;
+		const videoOrImgInfo = currentPostType.type === "collection" ? findMediaEntryByCarousel(mediaArray, postElement) : mediaArray[0];
 		if (!videoOrImgInfo) {
 			console.error("could not find media of the current collection item!");
 			return;
@@ -34,4 +67,4 @@ export const createMediaFetcherBySrcElementAndFetchFunc = (fetchFunc: FetchFunc)
 	}
 };
 
-export const createMediaFetcherBySrcElement = createMediaFetcherBySrcElementAndFetchFunc(fetchMediaInfo);
+// export const createMediaFetcherBySrcElement = createMediaFetcherBySrcElementAndFetchFunc(fetchMediaInfo);

@@ -1,9 +1,11 @@
-import { isLeft } from "fp-ts/lib/Either";
+import { isLeft, left, right } from "fp-ts/lib/Either";
 import { createElementByHTML } from "../../lib/html-util";
 import { getMediaSrcByHtml } from "../data-extraction/directly-in-browser/media-extraction";
+import { findMediaIdOnPostPage } from "../data-extraction/directly-in-browser/media-id";
 import { getHrefOfPost } from "../data-extraction/directly-in-browser/post-href";
 import { createMediaFetcherBySrcElementAndFetchFunc } from "../data-extraction/from-fetch-response/cached-media-fetching";
 import { getMediaInfoFromResponseObject } from "../data-extraction/from-fetch-response/fetch-media-data";
+import { fetchMediaID } from "../data-extraction/from-fetch-response/media-id";
 import { fetchMediaInfo } from "../data-extraction/instagram-api/media-info";
 import { createDiskDownloadButton, MediaWriteInfo } from "../download-buttons/disk-download-button";
 import { makeLinkButton } from "../download-buttons/link-button";
@@ -39,6 +41,8 @@ const applyPostDownloadElementStyle = (postElement: HTMLElement, element: HTMLEl
 	Object.assign(element.style, getPostDownloadElementStyle(postElement));
 };
 
+
+
 const getMediaSrcOfPostElement = (postElement: HTMLElement): Promise<MediaWriteInfo> => {
 	// const previewSrc = getPreviewSrcOfPost(postElement);
 	// if (!previewSrc) {
@@ -52,33 +56,54 @@ const getMediaSrcOfPostElement = (postElement: HTMLElement): Promise<MediaWriteI
 	return Promise.resolve(data);
 };
 
-async function fetchRecentMediaAndExtract(){
-	const mediaInfoJsonEither = await fetchMediaInfo();
+
+
+function queryOrFetchMediaId(postElement: HTMLElement){
+	if (getCurrentPageType() === "post"){
+		return findMediaIdOnPostPage();
+	}
+	const postHref = getHrefOfPost(postElement);
+	if (!postHref){
+		return left("could not find url of post");
+	}
+	return fetchMediaID(postHref);
+}
+
+async function fetchMediaAndExtract(postElement: HTMLElement){
+	const mediaIdEither = await queryOrFetchMediaId(postElement);
+	if (isLeft(mediaIdEither)){
+		return mediaIdEither;
+	}
+	const mediaInfoJsonEither = await fetchMediaInfo(mediaIdEither.right);
 	if (isLeft(mediaInfoJsonEither)){
-		throw mediaInfoJsonEither.left;
+		throw mediaInfoJsonEither;
 	}
 	const extractedInfo = getMediaInfoFromResponseObject(
 		mediaInfoJsonEither.right
 	);
-	return extractedInfo;
+	return right(extractedInfo);
 }
 
 function makeMediaSrcFetcher(postElement: HTMLElement){
-	const pageType = getCurrentPageType();
-	console.log("pagetype", pageType);
-	if (pageType === "post"){
-		return createMediaFetcherBySrcElementAndFetchFunc
-			(fetchRecentMediaAndExtract)
-			(postElement)
-	}
-	return () => getMediaSrcOfPostElement(postElement);
+	return createMediaFetcherBySrcElementAndFetchFunc
+		(() => fetchMediaAndExtract(postElement))
+		(postElement)
 }
+
+
+
 
 export function injectDownloadButtonsIntoPost(postElement: HTMLElement){
 	const sectionEl = postElement.querySelector("section");
 	if (!sectionEl){
 		console.warn(`trying to inject download buttons into post, but cannot find any child with tag 'Section'`);
 		return;
+	}
+
+	if (getCurrentPageType() === "mainFeed") {
+		const linkButton = makeLinkButton(getHrefOfPost(postElement));
+		applyPostDownloadElementStyle(postElement, linkButton.firstElementChild);
+		sectionEl.appendChild(linkButton);
 	}
 
 	const bar = createElementByHTML(`
@@ -93,19 +118,12 @@ export function injectDownloadButtonsIntoPost(postElement: HTMLElement){
 		></div>
 	`);
 	
-	const getMediaSrc = makeMediaSrcFetcher(postElement);
-	// const getMediaSrc = () => getMediaSrcOfPostElement(postElement);
-	// const getMediaSrc = createMediaFetcherBySrcElement(postElement);
-	const downloadButton = createDiskDownloadButton(getMediaSrc);
+	const downloadButton = createDiskDownloadButton(
+		makeMediaSrcFetcher(postElement)
+	);
 
 	applyPostDownloadElementStyle(postElement, downloadButton);
 	bar.appendChild(downloadButton);
 
 	sectionEl.insertAdjacentElement("beforeend", bar);
-
-	if (getCurrentPageType() === "mainFeed") {
-		const linkButton = makeLinkButton(getHrefOfPost(postElement));
-		applyPostDownloadElementStyle(postElement, linkButton.firstElementChild);
-		sectionEl.appendChild(linkButton);
-	}
 };

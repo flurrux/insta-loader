@@ -1,9 +1,9 @@
 import { queryMediaElement } from "../query-media-element";
 import { getMediaSrc } from "../src-from-img-or-video";
-import { getCurrentCarouselIndexAndList } from "./carousel-index";
+import { getCurrentCarouselIndexWithListAndChild } from "./carousel-index";
 
 export function getCarouselMediaByPostElement(postElement: HTMLElement) {
-	const indexAndList = getCurrentCarouselIndexAndList(postElement);
+	const indexAndList = getCurrentCarouselIndexWithListAndChild(postElement);
 	if (!indexAndList){
 		console.warn("could not find the current index of carousel");
 		return null;
