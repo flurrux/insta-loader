@@ -30,7 +30,8 @@
 		"tabs",
 		"notifications",
 		"downloads",
-		"webRequest"
+		"webRequest",
+		"webNavigation"
 	],
 
 	"host_permissions": [

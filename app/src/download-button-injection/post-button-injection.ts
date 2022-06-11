@@ -6,9 +6,8 @@ import { getHrefOfPost } from "../data-extraction/directly-in-browser/post-href"
 import { createMediaFetcherBySrcElementAndFetchFunc } from "../data-extraction/from-fetch-response/cached-media-fetching";
 import { getMediaInfoFromResponseObject } from "../data-extraction/from-fetch-response/fetch-media-data";
 import { fetchMediaID } from "../data-extraction/from-fetch-response/media-id";
-import { fetchMediaInfo } from "../data-extraction/instagram-api/media-info";
+import { fetchMediaInfoWithCurrentHeaders } from "../data-extraction/instagram-api/media-info";
 import { createDiskDownloadButton, MediaWriteInfo } from "../download-buttons/disk-download-button";
-import { makeLinkButton } from "../download-buttons/link-button";
 import { getCurrentPageType } from "../insta-navigation-observer";
 
 
@@ -74,7 +73,7 @@ async function fetchMediaAndExtract(postElement: HTMLElement){
 	if (isLeft(mediaIdEither)){
 		return mediaIdEither;
 	}
-	const mediaInfoJsonEither = await fetchMediaInfo(mediaIdEither.right);
+	const mediaInfoJsonEither = await fetchMediaInfoWithCurrentHeaders(mediaIdEither.right);
 	if (isLeft(mediaInfoJsonEither)){
 		throw mediaInfoJsonEither;
 	}
@@ -100,11 +99,11 @@ export function injectDownloadButtonsIntoPost(postElement: HTMLElement){
 		return;
 	}
 
-	if (getCurrentPageType() === "mainFeed") {
-		const linkButton = makeLinkButton(getHrefOfPost(postElement));
-		applyPostDownloadElementStyle(postElement, linkButton.firstElementChild);
-		sectionEl.appendChild(linkButton);
-	}
+	// if (getCurrentPageType() === "mainFeed") {
+	// 	const linkButton = makeLinkButton(getHrefOfPost(postElement));
+	// 	applyPostDownloadElementStyle(postElement, linkButton.firstElementChild);
+	// 	sectionEl.appendChild(linkButton);
+	// }
 
 	const bar = createElementByHTML(`
 		<div 

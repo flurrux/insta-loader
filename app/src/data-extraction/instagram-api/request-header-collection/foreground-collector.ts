@@ -1,21 +1,22 @@
 
 type RequestHeader = Record<string, string>;
-type APIRequestData = {
-	url: string,
-	headers: RequestHeader
+
+let currentHeaders: RequestHeader | null = null;
+
+export function getCurrentHeaders(): RequestHeader | null {
+	return currentHeaders;
 }
 
-type RequestDataOpt = APIRequestData | null;
-
-let currentRequest: RequestDataOpt = null;
-
-export function getRecentMediaInfoRequest(): RequestDataOpt {
-	return currentRequest;
+export function getCurrentHeadersOrThrow(){
+	if (!currentHeaders){
+		throw 'trying to fetch media info from instagram API, but there was no previous request that we could imitate. please check if `web-request-listener.ts` and `foreground-collector.ts` are working properly.'
+	}
+	return currentHeaders;
 }
 
 chrome.runtime.onMessage.addListener(
 	function (request) {
 		if (!("requestHeaders" in request)) return;
-		currentRequest = request as APIRequestData;
+		currentHeaders = request.requestHeaders;
 	}
 );
