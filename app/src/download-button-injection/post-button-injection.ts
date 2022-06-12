@@ -41,22 +41,6 @@ const applyPostDownloadElementStyle = (postElement: HTMLElement, element: HTMLEl
 };
 
 
-
-const getMediaSrcOfPostElement = (postElement: HTMLElement): Promise<MediaWriteInfo> => {
-	// const previewSrc = getPreviewSrcOfPost(postElement);
-	// if (!previewSrc) {
-	// 	return Promise.reject("preview-src not found");
-	// }
-
-	const data = getMediaSrcByHtml(postElement);
-	if (!data) {
-		return Promise.reject("media-src not found");
-	}
-	return Promise.resolve(data);
-};
-
-
-
 function queryOrFetchMediaId(postElement: HTMLElement){
 	if (getCurrentPageType() === "post"){
 		return findMediaIdOnPostPage();

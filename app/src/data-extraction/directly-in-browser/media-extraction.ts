@@ -5,7 +5,7 @@ import { queryMediaElement } from "./query-media-element";
 import { getMediaSrc } from "./src-from-img-or-video";
 
 
-function getMediaSrcByPostElement(postElement: HTMLElement){
+export function getMediaSrcByPostElement(postElement: HTMLElement){
 	const mediaElement = queryMediaElement(postElement);
 	if (!mediaElement){
 		console.log("could not find any media element in post", postElement);

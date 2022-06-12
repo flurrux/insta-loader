@@ -2,22 +2,8 @@
 
 # attention!  
 
-instagram made an update which breaks this extension badly.  
-with my most recent release, it's still possible to download stories and images from posts but **not** videos from posts!
-
-i've seen a couple other instagram-scraper experience the same issue:  
-https://github.com/arc298/instagram-scraper/issues/805  
-https://github.com/instaloader/instaloader/issues/1553
-
-the problem is, that when you do a fetch request for some instagram post, there is no source data for images and videos anymore.  
-
-one immediate workaround for images is to simply download from the source in the browser.  
-
-videos are way more tricky since they use hard-to-download blob sources.  
-i've found that one can obtain the url of a video via the network panel in chromes developer tools.  
-just remove the last two url parameters bytestart and byteend (or something like that).  
-don't know yet if this can be automated.  
-as a last resort, it should be possible to grab all frames from a video and re-encode them.  
+instagram made an update which breaks some functionalities of this extension.  
+most of the major problems should be fixed now like downloading videos/images on the timeline and on post pages, but i cannot make any promises.  
 
 # about  
 
@@ -25,10 +11,13 @@ a chrome extension to quickly download any media from [https://instagram.com/](i
 
 # features  
 
-- download-buttons on mainfeed, stories, userpages and generally any kind of feeds like tags or locations  
+- download-buttons on mainfeed, stories and post pages  
+- on the mainfeed or in stories, the enter-key can be pressed to trigger downloads
+
+currently broken: 
+
 - jump to lower/upper post on the mainfeed by `w` (upper post) or `s` (lower post)  
 - navigate left/right on carousels (with multiple pictures/videos) and in stories via the `d` (navigate right) and `a` (navigate left) keys.  
-- on the mainfeed or in stories, the enter-key can be pressed to trigger downloads
 
 
 downloaded videos/images will be saved in `Downloads/[username]`.  

@@ -9,8 +9,8 @@ export function getCarouselMediaByPostElement(postElement: HTMLElement) {
 		return null;
 	}
 	
-	const { index, list } = indexAndList;
-	const listItem = list.children[index + 1];
+	const { index, child } = indexAndList;
+	const listItem = child;
 
 	const mediaEl = queryMediaElement(listItem as HTMLElement);
 	if (!mediaEl){
