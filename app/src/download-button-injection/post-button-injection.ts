@@ -1,14 +1,12 @@
-import { isLeft, left, right } from "fp-ts/lib/Either";
+import { isLeft, isRight, left, right } from "fp-ts/lib/Either";
 import { createElementByHTML } from "../../lib/html-util";
-import { getMediaSrcByHtml } from "../data-extraction/directly-in-browser/media-extraction";
 import { findMediaIdOnPostPage } from "../data-extraction/directly-in-browser/media-id";
 import { getHrefOfPost } from "../data-extraction/directly-in-browser/post-href";
 import { createMediaFetcherBySrcElementAndFetchFunc } from "../data-extraction/from-fetch-response/cached-media-fetching";
 import { getMediaInfoFromResponseObject } from "../data-extraction/from-fetch-response/fetch-media-data";
 import { fetchMediaID } from "../data-extraction/from-fetch-response/media-id";
 import { fetchMediaInfoWithCurrentHeaders } from "../data-extraction/instagram-api/media-info";
-import { createDiskDownloadButton, MediaWriteInfo } from "../download-buttons/disk-download-button";
-import { getCurrentPageType } from "../insta-navigation-observer";
+import { createDiskDownloadButton } from "../download-buttons/disk-download-button";
 
 
 function findSavePostElement(postElement: HTMLElement) {
@@ -41,15 +39,19 @@ const applyPostDownloadElementStyle = (postElement: HTMLElement, element: HTMLEl
 };
 
 
-function queryOrFetchMediaId(postElement: HTMLElement){
-	if (getCurrentPageType() === "post"){
-		return findMediaIdOnPostPage();
-	}
+async function queryOrFetchMediaId(postElement: HTMLElement){
+	// first try to find the media-ID in the DOM
+	const queriedMediaID = findMediaIdOnPostPage();
+	if (isRight(queriedMediaID)) return queriedMediaID;
+
+	// media-ID was not found in the DOM. 
+	// this could have several reasons, maybe the post is an overlay or we're on the mainfeed.  
+	// now try to get a response of the post page and extract it from there.  
 	const postHref = getHrefOfPost(postElement);
 	if (!postHref){
 		return left("could not find url of post");
 	}
-	return fetchMediaID(postHref);
+	return await fetchMediaID(postHref);
 }
 
 async function fetchMediaAndExtract(postElement: HTMLElement){
