@@ -1,13 +1,13 @@
 import { Either, isLeft } from "fp-ts/lib/Either";
 import { getCurrentCarouselIndexWithListAndChild } from "../directly-in-browser/carousel/carousel-index";
 import { getCarouselMediaByPostElement } from "../directly-in-browser/carousel/carousel-media";
-import { getMediaSrcByPostElement } from "../directly-in-browser/media-extraction";
+import { getMediaSrcByPostElement } from "../directly-in-browser/media-and-src/media-extraction";
 import { getHrefOfPost } from "../directly-in-browser/post-href";
 import { findTypeOfPost } from "../directly-in-browser/post-type";
 import { findUsernameInPost } from "../directly-in-browser/post-username";
-import { queryMediaAndGetSrc } from "../directly-in-browser/query-media-and-get-src";
-import { queryMediaElement } from "../directly-in-browser/query-media-element";
-import { getMediaSrc } from "../directly-in-browser/src-from-img-or-video";
+import { queryMediaAndGetSrc } from "../directly-in-browser/media-and-src/query-media-and-get-src";
+import { queryMediaElement } from "../directly-in-browser/media-and-src/query-media-element";
+import { getMediaSrc } from "../directly-in-browser/media-and-src/src-from-img-or-video";
 import { findMediaEntryByCarousel } from "./find-carousel-item";
 import { MediaInfo, PostType, SingleMediaInfo } from "./types";
 

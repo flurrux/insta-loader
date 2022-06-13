@@ -1,11 +1,5 @@
-import { isLeft, isRight, left, right } from "fp-ts/lib/Either";
 import { createElementByHTML } from "../../lib/html-util";
-import { findMediaIdOnPostPage } from "../data-extraction/directly-in-browser/media-id";
-import { getHrefOfPost } from "../data-extraction/directly-in-browser/post-href";
-import { createMediaFetcherBySrcElementAndFetchFunc } from "../data-extraction/from-fetch-response/cached-media-fetching";
-import { getMediaInfoFromResponseObject } from "../data-extraction/from-fetch-response/fetch-media-data";
-import { fetchMediaID } from "../data-extraction/from-fetch-response/media-id";
-import { fetchMediaInfoWithCurrentHeaders } from "../data-extraction/instagram-api/media-info";
+import { makeMediaSrcFetcher } from "../data-extraction/hybrid/cached-media-fetching";
 import { createDiskDownloadButton } from "../download-buttons/disk-download-button";
 
 
@@ -39,57 +33,12 @@ const applyPostDownloadElementStyle = (postElement: HTMLElement, element: HTMLEl
 };
 
 
-async function queryOrFetchMediaId(postElement: HTMLElement){
-	// first try to find the media-ID in the DOM
-	const queriedMediaID = findMediaIdOnPostPage();
-	if (isRight(queriedMediaID)) return queriedMediaID;
-
-	// media-ID was not found in the DOM. 
-	// this could have several reasons, maybe the post is an overlay or we're on the mainfeed.  
-	// now try to get a response of the post page and extract it from there.  
-	const postHref = getHrefOfPost(postElement);
-	if (!postHref){
-		return left("could not find url of post");
-	}
-	return await fetchMediaID(postHref);
-}
-
-async function fetchMediaAndExtract(postElement: HTMLElement){
-	const mediaIdEither = await queryOrFetchMediaId(postElement);
-	if (isLeft(mediaIdEither)){
-		return mediaIdEither;
-	}
-	const mediaInfoJsonEither = await fetchMediaInfoWithCurrentHeaders(mediaIdEither.right);
-	if (isLeft(mediaInfoJsonEither)){
-		throw mediaInfoJsonEither;
-	}
-	const extractedInfo = getMediaInfoFromResponseObject(
-		mediaInfoJsonEither.right
-	);
-	return right(extractedInfo);
-}
-
-function makeMediaSrcFetcher(postElement: HTMLElement){
-	return createMediaFetcherBySrcElementAndFetchFunc
-		(() => fetchMediaAndExtract(postElement))
-		(postElement)
-}
-
-
-
-
 export function injectDownloadButtonsIntoPost(postElement: HTMLElement){
 	const sectionEl = postElement.querySelector("section");
 	if (!sectionEl){
 		console.warn(`trying to inject download buttons into post, but cannot find any child with tag 'Section'`);
 		return;
 	}
-
-	// if (getCurrentPageType() === "mainFeed") {
-	// 	const linkButton = makeLinkButton(getHrefOfPost(postElement));
-	// 	applyPostDownloadElementStyle(postElement, linkButton.firstElementChild);
-	// 	sectionEl.appendChild(linkButton);
-	// }
 
 	const bar = createElementByHTML(`
 		<div 

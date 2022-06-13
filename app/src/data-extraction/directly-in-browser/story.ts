@@ -1,4 +1,4 @@
-import { getHighestQualityFromSrcset } from "./srcset-util";
+import { getHighestQualityFromSrcset } from "./media-and-src/srcset-util";
 import { getFirstMatchOrNull } from '../../../lib/first-regex-match-or-null';
 
 type SourceEl = HTMLSourceElement;

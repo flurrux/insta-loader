@@ -1,7 +1,7 @@
-import { getHighestQualityFromSrcset } from "../directly-in-browser/srcset-util";
+import { getHighestQualityFromSrcset } from "../directly-in-browser/media-and-src/srcset-util";
 import { getCurrentCarouselElement } from '../directly-in-browser/carousel/carousel-item';
 import { ImgInfo, VideoInfo, VideoOrImgInfo } from "./types";
-import { queryMediaElement } from "../directly-in-browser/query-media-element";
+import { queryMediaElement } from "../directly-in-browser/media-and-src/query-media-element";
 import { getFirstMatchOrNull } from "../../../lib/first-regex-match-or-null";
 
 

@@ -1,4 +1,4 @@
-import { queryMediaElement } from "./query-media-element";
+import { queryMediaElement } from "./media-and-src/query-media-element";
 
 type PostType = "collection" | "video" | "image";
 

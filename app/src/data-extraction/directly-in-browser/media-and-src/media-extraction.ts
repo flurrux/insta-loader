@@ -1,6 +1,6 @@
-import { getCarouselMediaByPostElement } from "./carousel/carousel-media";
-import { findTypeOfPost } from "./post-type";
-import { findUsernameInPost } from "./post-username";
+import { getCarouselMediaByPostElement } from "../carousel/carousel-media";
+import { findTypeOfPost } from "../post-type";
+import { findUsernameInPost } from "../post-username";
 import { queryMediaElement } from "./query-media-element";
 import { getMediaSrc } from "./src-from-img-or-video";
 

@@ -1,5 +1,5 @@
-import { queryMediaElement } from "../query-media-element";
-import { getMediaSrc } from "../src-from-img-or-video";
+import { queryMediaElement } from "../media-and-src/query-media-element";
+import { getMediaSrc } from "../media-and-src/src-from-img-or-video";
 import { getCurrentCarouselIndexWithListAndChild } from "./carousel-index";
 
 export function getCarouselMediaByPostElement(postElement: HTMLElement) {

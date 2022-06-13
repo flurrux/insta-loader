@@ -1,4 +1,4 @@
-import { VideoOrImageElement } from "../media-types";
+import { VideoOrImageElement } from "../../media-types";
 
 
 function queryLargestImage(parent: HTMLElement){

@@ -1,5 +1,5 @@
 import { Either, left, right } from "fp-ts/lib/Either";
-import { CollectionDetails, getCollectionDetails } from "./collection-details";
+import { CollectionDetails, getCollectionDetails } from "./carousel/collection-details";
 import { findTypeOfPost } from "./post-type";
 
 
