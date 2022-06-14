@@ -1,5 +1,6 @@
 import { left, right } from "fp-ts/lib/Either";
 
+// this is not working anymore, since instagram removed the media id completely from the dom
 export function findMediaIdOnPostPage(){
 	const metaElement = document.querySelector("meta[content*='instagram://media?id=']");
 	if (!metaElement){

@@ -17,8 +17,8 @@ function postIsCarousel(postElement: HTMLElement, mediaElement: HTMLElement): bo
 export function findTypeOfPost(postElement: HTMLElement): PostType | null {
 	const mediaElement = queryMediaElement(postElement);
 	if (!mediaElement) {
-		console.warn("no media-element found");
-		console.log(postElement.innerHTML);
+		// console.warn("no media-element found");
+		// console.log(postElement);
 		return null;
 	}
 	if (postIsCarousel(postElement, mediaElement)) return "collection";

@@ -8,7 +8,7 @@ function getGrandParent(element: HTMLElement) {
 	return grandParent;
 }
 
-type IndexAndChild = {
+export type IndexAndChild = {
 	index: number,
 	child: HTMLElement
 }
@@ -51,7 +51,6 @@ export function getCurrentCarouselIndexAndChildByList(list: HTMLUListElement): I
 			listItemWidth, listItem
 		);
 		if (index === null) continue;
-		console.log("carousel index", index);
 
 		return {
 			index,

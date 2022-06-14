@@ -264,12 +264,13 @@ function extractMediaDataFromApationSet(mediaSet: Element): AdaptationSetExtract
 			context: mediaSet
 		});
 	}
-
+	console.log(childrenWithBandwidth);
 	const maxQualityNode = pipe(
 		childrenWithBandwidth as NonEmptyArray<Element>,
 		maxBandwidthElement
 	);
 	const maxQualityUrlEither = findBaseUrlContent(maxQualityNode);
+	console.log(maxQualityUrlEither);
 	if (isLeft(maxQualityUrlEither)) return maxQualityUrlEither;
 		
 	const maxBandwidth = getBandwidthOfElement(maxQualityNode);
@@ -345,7 +346,7 @@ export function extractMediaData(doc: XMLDocument): ExtractionResult {
 		(set) => {
 			const contentType = set.getAttribute("contentType");
 			if (contentType === "video") return true
-			if (set.hasAttribute("maxFrameRate")) true;
+			if (set.hasAttribute("maxFrameRate")) return true;
 			return false;
 		}
 	);
@@ -415,7 +416,6 @@ export function parseDashManifestString(manifestString: string): Either<Error, X
 }
 
 export function parseDashManifestAndExtractData(manifestString: string): Either<ExtractionFailure | Error, DashManifestDataWithWarnings<unknown>> {
-	console.log(manifestString);
 	const docEither = parseDashManifestString(manifestString);
 	if (isLeft(docEither)) return docEither;
 	return extractMediaData(docEither.right);

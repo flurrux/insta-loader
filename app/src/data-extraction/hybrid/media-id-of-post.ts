@@ -3,6 +3,9 @@ import { findMediaIdOnPostPage } from "../directly-in-browser/media-id";
 import { getHrefOfPost } from "../directly-in-browser/post-href";
 import { fetchMediaID } from "../from-fetch-response/media-id";
 
+// this method doesn't work anymore!
+// instagram removed the media ID from the DOM entirely!
+
 export async function queryOrFetchMediaId(postElement: HTMLElement) {
 	// first try to find the media-ID in the DOM
 	const queriedMediaID = findMediaIdOnPostPage();

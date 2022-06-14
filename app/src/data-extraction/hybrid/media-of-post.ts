@@ -1,10 +1,10 @@
 import { isLeft, right } from "fp-ts/lib/Either";
 import { getMediaInfoFromResponseObject } from "../from-fetch-response/fetch-media-data";
 import { fetchMediaInfoWithCurrentHeaders } from "../instagram-api/media-info";
-import { queryOrFetchMediaId } from "./media-id-of-post";
+import { getCurrentMediaID } from "../instagram-api/request-header-collection/media-id-collector";
 
-export async function fetchMediaAndExtract(postElement: HTMLElement) {
-	const mediaIdEither = await queryOrFetchMediaId(postElement);
+export async function fetchMediaOnCurrentPageAndExtract() {
+	const mediaIdEither = getCurrentMediaID();
 	if (isLeft(mediaIdEither)) return mediaIdEither;
 	
 	const mediaInfoJsonEither = await fetchMediaInfoWithCurrentHeaders(mediaIdEither.right);
