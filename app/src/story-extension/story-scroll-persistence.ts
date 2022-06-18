@@ -6,7 +6,7 @@
 */
 
 
-import { findStoryElement } from '../data-extraction/directly-in-browser/story';
+import { findStoryElement } from '../data-extraction/directly-in-browser/stories/main-element';
 import { pageType, subscribeToNavigation, getCurrentPageType } from '../insta-navigation-observer';
 
 

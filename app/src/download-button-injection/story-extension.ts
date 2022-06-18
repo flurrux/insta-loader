@@ -1,7 +1,9 @@
 import { createElementByHTML, querySelectorAncestor } from "../../lib/html-util";
-import { getSrcOfStory, getUsernameOfStory } from "../data-extraction/directly-in-browser/story";
+import { getSrcOfStory } from "../data-extraction/directly-in-browser/stories/source";
+import { getUsernameOfStory } from "../data-extraction/directly-in-browser/stories/username";
 import { createDiskDownloadButton, DiskDownloadButtonOptions, MediaWriteInfo } from "../download-buttons/disk-download-button";
 import { downloadKey, requestDownloadByButton } from "../download-shortcut";
+import { isLeft } from "fp-ts/lib/Either";
 
 
 const findCloseStoryElement = (storyEl: HTMLElement): HTMLElement => {
@@ -10,9 +12,12 @@ const findCloseStoryElement = (storyEl: HTMLElement): HTMLElement => {
 
 const getMediaSrcOfStoryElement = (storyEl: HTMLElement): Promise<MediaWriteInfo> => {
 	try {
-		const src = getSrcOfStory(storyEl);
 		const username = getUsernameOfStory();
-		return Promise.resolve({ src, username });
+		if (isLeft(username)){
+			return Promise.reject(username.left);
+		}
+		const src = getSrcOfStory(storyEl);
+		return Promise.resolve({ src, username: username.right });
 	}
 	catch (e) {
 		return Promise.reject(e);
