@@ -3,7 +3,20 @@
 # attention!  
 
 instagram made an update which breaks some functionalities of this extension.  
-most of the major problems should be fixed now like downloading videos/images on the timeline and on post pages, but i cannot make any promises.  
+most of the major problems should be fixed now like downloading images on the timeline and downloading images and videos on post pages, but i cannot make any promises.  
+
+if you want to download a video on the mainfeed, open that post in a new tab (via the dedicated link button in place of the download button) and download it there.  
+
+currently known bugs are:  
+
+- stories downloaded from the highlights tray are saved into the folder `Downloads/null` instead of `Downloads/[username]`.  
+this bug is already fixed but not released yet.  
+if this is a big issue for you, please leave a comment [here](https://github.com/flurrux/insta-loader/issues/23) and i will release the next version faster.  
+- video downloads sometimes fail due to a [limitation of chrome extensions to keep background scripts running](https://github.com/flurrux/insta-loader/issues/24#issuecomment-1159406256).  
+if that's the case, please refresh the page and try again.  
+if it still doesn't work, consider leaving [a bug report here](https://github.com/flurrux/insta-loader/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc).  
+
+&nbsp;
 
 # about  
 
