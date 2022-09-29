@@ -1,13 +1,22 @@
 
+# about  
 
-# attention!  
+a chrome extension to quickly download any media from [https://instagram.com/](instagram.com)  
 
-instagram made an update which breaks some functionalities of this extension.  
-most of the major problems should be fixed now like downloading images on the timeline and downloading images and videos on post pages, but i cannot make any promises.  
 
-if you want to download a video on the mainfeed, open that post in a new tab (via the dedicated link button in place of the download button) and download it there.  
+# current major issues (29. September 2022)  
 
-currently known bugs are:  
+i've noticed today that many stories fail to download, while some other stories can be downloaded as usual. those stories that fail to download have a blob-url as a src, while the downloader expects an mp4-url.  
+i don't know the reason for this difference. maybe those stories that were published before the update still continue to work but time will tell.  
+i have dug into the network requests a little bit and found that there is one request for all stories and its url is `https://i.instagram.com/api/v1/feed/reels_media/?reel_ids=[reel ID]`.  
+from the response, i was able to find the mp4-url of each story: 
+`response.reels_media[0].items[storyIndex].video_versions[0].url`.  
+it looks as if the first item in `video_versions` is the highest quality one, but each item has a `width` and `height` property, so it should be no issue finding the best one.  
+anyway, i'm trying to fix this asap!
+
+
+
+## current minor bugs are:  
 
 - stories downloaded from the highlights tray are saved into the folder `Downloads/null` instead of `Downloads/[username]`.  
 this bug is already fixed but not released yet.  
@@ -18,9 +27,6 @@ if it still doesn't work, consider leaving [a bug report here](https://github.co
 
 &nbsp;
 
-# about  
-
-a chrome extension to quickly download any media from [https://instagram.com/](instagram.com)  
 
 # features  
 
