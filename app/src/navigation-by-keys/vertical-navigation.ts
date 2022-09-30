@@ -1,4 +1,4 @@
-﻿import { isNone, none, Option, some } from "fp-ts/lib/Option";
+﻿import { isNone, none, Option, some } from "fp-ts/es6/Option";
 import { findMainFeedPosts } from "./find-mainfeed-posts";
 
 const scrollTolerance = 30;

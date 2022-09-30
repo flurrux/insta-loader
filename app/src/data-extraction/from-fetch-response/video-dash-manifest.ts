@@ -1,9 +1,9 @@
-import { Either, isLeft, isRight, left, right, tryCatch } from "fp-ts/lib/Either";
-import { pipe } from "fp-ts/lib/function";
-import { max, NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
-import { Ord } from "fp-ts/lib/number";
-import { none, Option, some } from "fp-ts/lib/Option";
-import { contramap } from "fp-ts/lib/Ord";
+import { Either, isLeft, isRight, left, right, tryCatch } from "fp-ts/es6/Either";
+import { pipe } from "fp-ts/es6/function";
+import { max, NonEmptyArray } from "fp-ts/es6/NonEmptyArray";
+import { Ord } from "fp-ts/es6/number";
+import { none, Option, some } from "fp-ts/es6/Option";
+import { contramap } from "fp-ts/es6/Ord";
 
 
 /*

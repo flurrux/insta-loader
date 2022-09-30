@@ -1,4 +1,4 @@
-import { Either, fromNullable, left } from 'fp-ts/lib/Either';
+import { Either, fromNullable, left } from 'fp-ts/es6/Either';
 import { getFirstMatchOrNull } from '../../../../lib/first-regex-match-or-null';
 
 

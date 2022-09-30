@@ -1,4 +1,4 @@
-import { isLeft } from "fp-ts/lib/Either";
+import { isLeft } from "fp-ts/es6/Either";
 import { createFileNameByUrl } from "../../lib/url-to-filename";
 import { getOwnUsername } from "../data-extraction/directly-in-browser/own-username";
 import { download as downloadByChrome } from '../disk-writing/chrome-download';

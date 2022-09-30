@@ -1,4 +1,4 @@
-import { isLeft } from "fp-ts/lib/Either";
+import { isLeft } from "fp-ts/es6/Either";
 import { getCurrentPageType } from "../../insta-navigation-observer";
 import { getHrefOfPost } from "../directly-in-browser/post-href";
 import { findTypeOfPost } from "../directly-in-browser/post-type";

@@ -1,4 +1,4 @@
-import { Either, left, right } from "fp-ts/lib/Either";
+import { Either, left, right } from "fp-ts/es6/Either";
 import { CollectionDetails, getCollectionDetails } from "./carousel/collection-details";
 import { findTypeOfPost } from "./post-type";
 

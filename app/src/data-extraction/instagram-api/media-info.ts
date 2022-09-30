@@ -1,4 +1,4 @@
-import { right } from "fp-ts/lib/Either";
+import { right } from "fp-ts/es6/Either";
 import { getCurrentHeadersOrThrow } from "./request-header-collection/foreground-collector";
 
 function makeMediaFetchUrl(mediaId: string): string {

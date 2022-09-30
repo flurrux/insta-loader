@@ -1,7 +1,7 @@
 import { createFileNameByUrl } from "../../lib/url-to-filename";
 import { downloadResource } from "../../lib/prompt-download-util";
 import { createElementByHTML } from "../../lib/html-util";
-import { isLeft } from "fp-ts/lib/Either";
+import { isLeft } from "fp-ts/es6/Either";
 import { getIconUrl } from "./icon-url";
 import { getElementTypesOnCurrentPage, InstaElementType } from "../data-extraction/is-currently-post-story-or-preview";
 

@@ -1,5 +1,5 @@
 import { createFileNameByUrl } from "./url-to-filename";
-import { right } from "fp-ts/lib/Either";
+import { right } from "fp-ts/es6/Either";
 
 test(
 	"extract the filename from a media-url",

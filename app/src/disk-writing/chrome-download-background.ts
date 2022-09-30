@@ -33,6 +33,71 @@ const startDownloadAndGetId = (options: DownloadOptions): Promise<number> => {
 };
 
 
+async function handleDownloadRequest(port: chrome.runtime.Port, msg: DownloadRequest){
+	try {
+		const id = await startDownloadAndGetId({
+			url: msg.url,
+			filename: msg.filePath,
+			conflictAction: "overwrite"
+		});
+		port.postMessage({
+			type: "download-id", id
+		} as DownloadIdResponse);
+	}
+	catch (e) {
+		port.postMessage({
+			type: "error",
+			error: e
+		} as DownloadErrorResponse);
+	}
+}
+
+function handleStateRequest(port: chrome.runtime.Port, msg: DownloadStateRequest){
+	chrome.downloads.search(
+		{ id: msg.id }, 
+		(items: DownloadItem[]) => {
+			if (items.length === 0) {
+				port.postMessage({
+					type: "error",
+					error: "download started but file not found. this may be a problem with chrome."
+				} as DownloadErrorResponse);
+				return;
+			}
+			else {
+				if (items.length > 1) {
+					console.warn("more than one file for this download found. this shoud not happen");
+				}
+				const item = items[0];
+				const state = item.state;
+				if (state === "interrupted") {
+					port.postMessage({
+						type: "error",
+						error: item.error
+					} as DownloadErrorResponse);
+					return;
+				}
+				if (state === "complete") {
+					port.postMessage({
+						type: "success"
+					} as DownloadSuccessResponse);
+					return;
+				}
+				if (state === "in_progress") {
+					port.postMessage({
+						type: "progress",
+						progress: {
+							bytesReceived: item.bytesReceived,
+							totalBytes: item.totalBytes,
+							progress: (item.bytesReceived / item.totalBytes)
+						}
+					} as DownloadProgressResponse);
+					return;
+				}
+			}
+		}
+	)
+}
+
 chrome.runtime.onConnect.addListener(
 	(port) => {
 		if (port.name !== "chrome-downloader") return;
@@ -44,66 +109,12 @@ chrome.runtime.onConnect.addListener(
 			async (msg: DownloadRequest | DownloadStateRequest, sender) => {
 				console.log(msg);			
 				if (msg.type === "request-download"){
-					try {
-						const id = await startDownloadAndGetId({
-							url: msg.url,
-							filename: msg.filePath,
-							conflictAction: "overwrite"
-						});
-						port.postMessage({
-							type: "download-id", id
-						} as DownloadIdResponse);
-					}
-					catch (e){
-						port.postMessage({
-							type: "error",
-							error: e
-						} as DownloadErrorResponse);
-					}
+					handleDownloadRequest(port, msg);
 					return;
 				}
 	
 				if (msg.type === "request-state"){
-					chrome.downloads.search({ id: msg.id }, (items: DownloadItem[]) => {
-						if (items.length === 0) {
-							port.postMessage({
-								type: "error",
-								error: "download started but file not found. this may be a problem with chrome."
-							} as DownloadErrorResponse);
-							return;
-						}
-						else {
-							if (items.length > 1) {
-								console.warn("more than one file for this download found. this shoud not happen");
-							}
-							const item = items[0];
-							const state = item.state;
-							if (state === "interrupted"){
-								port.postMessage({
-									type: "error",
-									error: item.error
-								} as DownloadErrorResponse);
-								return;
-							}
-							if (state === "complete") {
-								port.postMessage({
-									type: "success"
-								} as DownloadSuccessResponse);
-								return;
-							}
-							if (state === "in_progress"){
-								port.postMessage({
-									type: "progress",
-									progress: {
-										bytesReceived: item.bytesReceived,
-										totalBytes: item.totalBytes,
-										progress: (item.bytesReceived / item.totalBytes)
-									}
-								} as DownloadProgressResponse);
-								return;
-							}
-						}
-					})
+					handleStateRequest(port, msg);
 				}
 			}
 		);

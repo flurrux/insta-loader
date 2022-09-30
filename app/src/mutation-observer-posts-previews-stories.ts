@@ -1,5 +1,5 @@
 
-import { flow } from 'fp-ts/lib/function';
+import { flow } from 'fp-ts/es6/function';
 import { getElementTypesOnCurrentPage, InstaElementType } from './data-extraction/is-currently-post-story-or-preview';
 
 

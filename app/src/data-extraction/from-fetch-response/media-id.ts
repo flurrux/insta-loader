@@ -1,4 +1,4 @@
-import { fromNullable } from "fp-ts/lib/Either";
+import { fromNullable } from "fp-ts/es6/Either";
 import { getFirstMatchOrNull } from "../../../lib/first-regex-match-or-null";
 
 export async function fetchMediaID(postUrl: string){

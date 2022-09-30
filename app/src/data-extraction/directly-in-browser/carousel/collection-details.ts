@@ -1,4 +1,4 @@
-import { Either, left, right } from "fp-ts/lib/Either";
+import { Either, left, right } from "fp-ts/es6/Either";
 import { getCurrentCarouselIndexWithListAndChild } from "./carousel-index";
 import { queryMediaElement } from "../media-and-src/query-media-element";
 

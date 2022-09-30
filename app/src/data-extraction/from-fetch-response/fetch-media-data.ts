@@ -1,9 +1,9 @@
-import { sort } from 'fp-ts/lib/Array';
-import { isLeft } from 'fp-ts/lib/Either';
-import { flow } from 'fp-ts/lib/function';
-import { Ord } from 'fp-ts/lib/number';
-import { isSome, none, Option, some } from 'fp-ts/lib/Option';
-import { contramap, reverse } from 'fp-ts/lib/Ord';
+import { sort } from 'fp-ts/es6/Array';
+import { isLeft } from 'fp-ts/es6/Either';
+import { flow } from 'fp-ts/es6/function';
+import { Ord } from 'fp-ts/es6/number';
+import { isSome, none, Option, some } from 'fp-ts/es6/Option';
+import { contramap, reverse } from 'fp-ts/es6/Ord';
 import { parseDashManifestAndExtractData } from './video-dash-manifest';
 import { CarouselItem, MediaInfo, PostType, VersionItem, VideoOrImgInfo, VideoOrImgItem } from './types';
 

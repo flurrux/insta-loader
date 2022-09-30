@@ -3,7 +3,7 @@ import { getSrcOfStory } from "../data-extraction/directly-in-browser/stories/so
 import { getUsernameOfStory } from "../data-extraction/directly-in-browser/stories/username";
 import { createDiskDownloadButton, DiskDownloadButtonOptions, MediaWriteInfo } from "../download-buttons/disk-download-button";
 import { downloadKey, requestDownloadByButton } from "../download-shortcut";
-import { isLeft } from "fp-ts/lib/Either";
+import { isLeft } from "fp-ts/es6/Either";
 
 
 const findCloseStoryElement = (storyEl: HTMLElement): HTMLElement => {

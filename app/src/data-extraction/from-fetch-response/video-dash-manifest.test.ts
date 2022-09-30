@@ -1,5 +1,5 @@
-// import { right } from "fp-ts/lib/Either";
-// import { some } from "fp-ts/lib/Option";
+// import { right } from "fp-ts/es6/Either";
+// import { some } from "fp-ts/es6/Option";
 // import { parseDashManifestAndExtractData } from "./video-dash-manifest";
 
 // const manifestRaw = `

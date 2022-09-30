@@ -1,4 +1,4 @@
-import { Either, left, right } from "fp-ts/lib/Either";
+import { Either, left, right } from "fp-ts/es6/Either";
 
 // todo: maybe move this module to some instagram-specific folder.
 
