@@ -3,27 +3,18 @@
 
 a chrome extension to quickly download any media from [https://instagram.com/](instagram.com)  
 
+this extension breaks occasionally (twice a year maybe) due to Instagram updating their website. i do my best to repair it asap whenever that happens. 
 
-# current major issues (29. September 2022)  
-
-i've noticed today that many stories fail to download, while some other stories can be downloaded as usual. those stories that fail to download have a blob-url as a src, while the downloader expects an mp4-url.  
-i don't know the reason for this difference. maybe those stories that were published before the update still continue to work but time will tell.  
-i have dug into the network requests a little bit and found that there is one request for all stories and its url is `https://i.instagram.com/api/v1/feed/reels_media/?reel_ids=[reel ID]`.  
-from the response, i was able to find the mp4-url of each story: 
-`response.reels_media[0].items[storyIndex].video_versions[0].url`.  
-it looks as if the first item in `video_versions` is the highest quality one, but each item has a `width` and `height` property, so it should be no issue finding the best one.  
-anyway, i'm trying to fix this asap!
-
-
+the most recent breakage was at 29th September 2022 when stories were unable to be downloaded. this should be resolved now. 
 
 ## current minor bugs are:  
 
-- stories downloaded from the highlights tray are saved into the folder `Downloads/null` instead of `Downloads/[username]`.  
-this bug is already fixed but not released yet.  
-if this is a big issue for you, please leave a comment [here](https://github.com/flurrux/insta-loader/issues/23) and i will release the next version faster.  
+- audio is missing from downloaded videos. the reason is that video- and audio parts on instagram are stored in separate files on their servers. when you press download, only the video-part is downloaded. merging the parts into one mp4-file is possible, but the code required will bloat this extension immensely (~20 megabytes). an alternative is to simply download both video and audio together. will have to think more about this.
+
 - video downloads sometimes fail due to a [limitation of chrome extensions to keep background scripts running](https://github.com/flurrux/insta-loader/issues/24#issuecomment-1159406256).  
 if that's the case, please refresh the page and try again.  
 if it still doesn't work, consider leaving [a bug report here](https://github.com/flurrux/insta-loader/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc).  
+
 
 &nbsp;
 
