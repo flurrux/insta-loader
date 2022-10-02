@@ -38,7 +38,7 @@ async function handleDownloadRequest(port: chrome.runtime.Port, msg: DownloadReq
 		const id = await startDownloadAndGetId({
 			url: msg.url,
 			filename: msg.filePath,
-			conflictAction: "overwrite"
+			conflictAction: "prompt"
 		});
 		port.postMessage({
 			type: "download-id", id

@@ -2,6 +2,7 @@
 
 console.log("listening for instagram API calls ...");
 
+type HeadersDetails = chrome.webRequest.WebRequestHeadersDetails;
 
 // ## headers ##
 
@@ -19,7 +20,7 @@ function objectifyRequestHeaders(headers: chrome.webRequest.HttpHeader[]) {
 	return obj;
 }
 
-function detectHeaders(details: chrome.webRequest.WebRequestHeadersDetails){
+function detectHeaders(details: HeadersDetails){
 	const { tabId, requestHeaders } = details;
 	if (!requestHeaders) return;
 
@@ -53,7 +54,7 @@ function detectHeaders(details: chrome.webRequest.WebRequestHeadersDetails){
 
 // ## media ID ##
 
-function detectMediaID(details: chrome.webRequest.WebRequestHeadersDetails){
+function detectMediaID(details: HeadersDetails){
 	const { tabId, url } = details;
 	const mediaIdMatch = /(?<=i\.instagram\.com\/api\/v1\/media\/)\d*(?=\/info)/.exec(url);
 	if (!mediaIdMatch) return;

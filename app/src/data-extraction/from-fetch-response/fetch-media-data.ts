@@ -49,7 +49,7 @@ function extractVideoAndAudioFromDashManifest(item: VideoOrImgItem): Option<Vide
 	})
 }
 
-function getMediaInfoFromSingleItem(item: VideoOrImgItem): VideoOrImgInfo {
+export function getMediaInfoFromSingleItem(item: VideoOrImgItem): VideoOrImgInfo {
 	if ("video_versions" in item) {
 		const manifestExtraction = extractVideoAndAudioFromDashManifest(item);
 		if (isSome(manifestExtraction)) {

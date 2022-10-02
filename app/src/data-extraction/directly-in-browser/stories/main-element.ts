@@ -6,17 +6,18 @@ export function findStoryElement() {
 
 	let currentChild = firstCanvas.parentElement;
 	if (currentChild === null) return;
-	// why is typescript not narrowing to type of `currentChild`??
+	
+	let currentElement = currentChild;
 
 	for (let a = 0; a < 10000; a++) {
-		const currentParent = currentChild.parentElement;
+		const currentParent = currentElement.parentElement;
 		if (!currentParent) {
 			return;
 		}
-		if (currentParent.offsetHeight - currentChild.offsetHeight < 0) {
+		if (currentParent.offsetHeight - currentElement.offsetHeight < 0) {
 			return currentParent;
 		}
-		currentChild = currentParent;
+		currentElement = currentParent;
 	}
 	console.warn("either something went wrong or the dom is very large");
 }

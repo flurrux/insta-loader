@@ -1,3 +1,4 @@
+import { left, right } from "fp-ts/es6/Either";
 
 type RequestHeader = Record<string, string>;
 
@@ -12,6 +13,15 @@ export function getCurrentHeadersOrThrow(){
 		throw 'trying to fetch media info from instagram API, but there was no previous request that we could imitate. please check if `web-request-listener.ts` and `foreground-collector.ts` are working properly.'
 	}
 	return currentHeaders;
+}
+
+export function getCurrentHeadersAsEither() {
+	if (!currentHeaders) {
+		return left(
+			'trying to fetch media info from instagram API, but there was no previous request that we could imitate. please check if `web-request-listener.ts` and `foreground-collector.ts` are working properly.'
+		)
+	}
+	return right(currentHeaders);
 }
 
 chrome.runtime.onMessage.addListener(

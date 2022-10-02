@@ -1,27 +1,10 @@
 import { createElementByHTML, querySelectorAncestor } from "../../lib/html-util";
-import { getSrcOfStory } from "../data-extraction/directly-in-browser/stories/source";
-import { getUsernameOfStory } from "../data-extraction/directly-in-browser/stories/username";
-import { createDiskDownloadButton, DiskDownloadButtonOptions, MediaWriteInfo } from "../download-buttons/disk-download-button";
+import { createDiskDownloadButton, DiskDownloadButtonOptions } from "../download-buttons/disk-download-button";
 import { downloadKey, requestDownloadByButton } from "../download-shortcut";
-import { isLeft } from "fp-ts/es6/Either";
-
+import { makeStoryFetcher } from "./cached-story-fetching";
 
 const findCloseStoryElement = (storyEl: HTMLElement): HTMLElement => {
 	return storyEl.querySelector(".coreSpriteCloseLight").children[0] as HTMLElement;
-};
-
-const getMediaSrcOfStoryElement = (storyEl: HTMLElement): Promise<MediaWriteInfo> => {
-	try {
-		const username = getUsernameOfStory();
-		if (isLeft(username)){
-			return Promise.reject(username.left);
-		}
-		const src = getSrcOfStory(storyEl);
-		return Promise.resolve({ src, username: username.right });
-	}
-	catch (e) {
-		return Promise.reject(e);
-	}
 };
 
 const getStoryDownloadElementStyle = (storyEl: HTMLElement): Partial<CSSStyleDeclaration> => {
@@ -102,8 +85,9 @@ export const injectDownloadButtonsIntoStory = (storyEl: HTMLElement) => {
 			}
 		};
 	})();
+
 	const diskDownloadButton = createDiskDownloadButton(
-		() => getMediaSrcOfStoryElement(storyEl),
+		makeStoryFetcher(),
 		pauseHandleDownloadOptions
 	);
 	// Object.assign(diskDownloadButton.style, getStoryDownloadElementStyle(storyEl));
