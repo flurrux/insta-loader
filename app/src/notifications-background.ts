@@ -1,3 +1,4 @@
+import { runtime, notifications } from "webextension-polyfill";
 
 interface NotificationArgs {
 	iconUrl: string,
@@ -5,12 +6,15 @@ interface NotificationArgs {
 	message: string
 };
 
-chrome.runtime.onMessage.addListener(
-	function (request: any, sender: any, sendResponse) {
+runtime.onMessage.addListener(
+	(request) => {
 		if (request.type !== "show-notification") return;
-		chrome.notifications.create(null, {
-			type: "basic",
-			...request.notification
-		});
+		notifications.create(
+			undefined, 
+			{
+				type: "basic",
+				...request.notification
+			}
+		);
 	}
 );

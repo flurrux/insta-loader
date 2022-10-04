@@ -1,4 +1,5 @@
 import { isLeft } from "fp-ts/es6/Either";
+import { runtime, storage } from "webextension-polyfill";
 import { createFileNameByUrl } from "../../lib/url-to-filename";
 import { getOwnUsername } from "../data-extraction/directly-in-browser/own-username";
 import { download as downloadByChrome } from '../disk-writing/chrome-download';
@@ -17,19 +18,11 @@ export type LoadingCallback = (progress: number) => void;
 type DownloadMethod = "native" | "chrome-background";
 const defaultDownloadMethod: DownloadMethod = "chrome-background";
 
-const getDownloadMethod = (): Promise<DownloadMethod> => {
-	return new Promise((resolve, reject) => {
-		chrome.storage.sync.get(
-			{ downloadMethod: defaultDownloadMethod },
-			(items: { downloadMethod: DownloadMethod }) => {
-				if (chrome.runtime.lastError){
-					reject(chrome.runtime.lastError.message);
-					return;
-				}
-				resolve(items.downloadMethod);
-			}
-		);
-	});
+async function getDownloadMethod() {
+	const items = await storage.sync.get(
+		{ downloadMethod: defaultDownloadMethod }
+	);
+	return items.downloadMethod as DownloadMethod;
 };
 
 const downloadInBackground = async (mediaInfo: MediaWriteInfo, loadingCallback: LoadingCallback): Promise<void> => {
@@ -82,7 +75,7 @@ const downloadFileIndirectly = async (
 	catch (error) {
 		console.error(error);
 		const message = mediaInfo ? `${error}, \n user: ${mediaInfo.username}, \n src: ${mediaInfo.src}` : error;
-		chrome.runtime.sendMessage({
+		runtime.sendMessage({
 			type: "show-notification",
 			notification: {
 				title: "download failed",

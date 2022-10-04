@@ -1,11 +1,12 @@
-﻿
+﻿import { storage } from "webextension-polyfill";
+
 interface FolderPathLookupArgs {
 	mediaSrc: string,
 	userName: string,
 	ownUserName: string
 };
 
-const getFolderPathByItems = (userName: string, ownUserName: string, items: any): string => {
+const getFolderPathByItems = (userName: string, ownUserName: string, items: any): string | null => {
 	const directoryRules = items.directoryRules || [];
 	directoryRules.reverse();
 
@@ -39,24 +40,17 @@ const getFolderPathByItems = (userName: string, ownUserName: string, items: any)
 			return writePath;
 		}
 	}
+	return null;
 };
 
-export const getFolderPath = async (args: FolderPathLookupArgs): Promise<string> => {
-	return new Promise((resolve, reject) => {
-		chrome.storage.sync.get(
-			{
-				baseDownloadDirectory: "",
-				directoryRules: []
-			},
-			(items) => {
-				const path = getFolderPathByItems(args.userName, args.ownUserName, items);
-				if (!path){
-					reject("no path found. have you set a path in the extension-options?")
-				}
-				else {
-					resolve(path);
-				}
-			}
-		);
+export async function getFolderPath(args: FolderPathLookupArgs) {
+	const items = await storage.sync.get({
+		baseDownloadDirectory: "",
+		directoryRules: []
 	});
+
+	const path = getFolderPathByItems(args.userName, args.ownUserName, items);
+	if (!path) throw "no path found. have you set a path in the extension-options?";
+
+	return path;
 };

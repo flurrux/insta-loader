@@ -1,4 +1,5 @@
 import { left, right } from "fp-ts/es6/Either";
+import { runtime } from "webextension-polyfill";
 
 type RequestHeader = Record<string, string>;
 
@@ -24,7 +25,7 @@ export function getCurrentHeadersAsEither() {
 	return right(currentHeaders);
 }
 
-chrome.runtime.onMessage.addListener(
+runtime.onMessage.addListener(
 	function (request) {
 		if (!("requestHeaders" in request)) return;
 		currentHeaders = request.requestHeaders;

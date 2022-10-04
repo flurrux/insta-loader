@@ -1,17 +1,12 @@
+import { tabs, webNavigation, webRequest, WebRequest } from "webextension-polyfill";
 
 
 console.log("listening for instagram API calls ...");
 
-type HeadersDetails = chrome.webRequest.WebRequestHeadersDetails;
-
 // ## headers ##
 
-type RequestHeader = {
-	name: string,
-	value: string
-}
 
-function objectifyRequestHeaders(headers: chrome.webRequest.HttpHeader[]) {
+function objectifyRequestHeaders(headers: WebRequest.HttpHeadersItemType[]) {
 	const obj: Record<string, string> = {};
 	for (const { name, value } of headers) {
 		if (value === undefined) continue;
@@ -19,6 +14,8 @@ function objectifyRequestHeaders(headers: chrome.webRequest.HttpHeader[]) {
 	}
 	return obj;
 }
+
+type HeadersDetails = WebRequest.OnSendHeadersDetailsType;
 
 function detectHeaders(details: HeadersDetails){
 	const { tabId, requestHeaders } = details;
@@ -45,7 +42,7 @@ function detectHeaders(details: HeadersDetails){
 
 	console.log("detected valid headers", minimalHeaders);
 
-	chrome.tabs.sendMessage(
+	tabs.sendMessage(
 		tabId,
 		{ requestHeaders: minimalHeaders }
 	);
@@ -61,7 +58,7 @@ function detectMediaID(details: HeadersDetails){
 	
 	const mediaID = mediaIdMatch[0];
 	console.log("detected media ID!");
-	chrome.tabs.sendMessage(
+	tabs.sendMessage(
 		tabId, { mediaID }
 	);
 }
@@ -69,7 +66,7 @@ function detectMediaID(details: HeadersDetails){
 
 // ## listener ##
 
-chrome.webRequest.onSendHeaders.addListener(
+webRequest.onSendHeaders.addListener(
 	function (details) {
 		detectHeaders(details);
 		detectMediaID(details);
@@ -84,7 +81,7 @@ chrome.webRequest.onSendHeaders.addListener(
 
 // this listener is needed to wake up the background script whenever we navigate to instagram.
 // see https://stackoverflow.com/a/71431963
-chrome.webNavigation.onHistoryStateUpdated.addListener(
+webNavigation.onHistoryStateUpdated.addListener(
 	(details) => {
 		console.log('waking up');
 	}

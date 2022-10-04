@@ -1,3 +1,4 @@
+import { runtime } from "webextension-polyfill";
 
 interface DiskDownloadArgs {
 	link: string,
@@ -29,7 +30,7 @@ export const download = (
 	});
 
 	//long lived connection
-	const port = chrome.runtime.connect({ 
+	const port = runtime.connect({ 
 		name: "disk-downloader" 
 	});
 	port.onMessage.addListener((answer, sender) => {

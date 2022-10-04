@@ -2,6 +2,8 @@
  * Created by Christian on 15.08.2017.
  */
 
+import { runtime } from "webextension-polyfill";
+
 interface NativeProgressResponse {
 	type: "progress",
 	data: {
@@ -38,7 +40,7 @@ const connectToNativeHost = (request, sender, responseFunc) => {
 	console.log("request", request);
 	const hostName = nativeHostName;
 	try {
-		const port = chrome.runtime.connectNative(hostName);
+		const port = runtime.connectNative(hostName);
 		port.onMessage.addListener(message => {
 			console.log("received native message", message);
 			responseFunc({
@@ -47,7 +49,7 @@ const connectToNativeHost = (request, sender, responseFunc) => {
 			} as ResponseToForeground);
 		});
 		port.onDisconnect.addListener(() => {
-			const errorMessage = chrome.runtime.lastError.message;
+			const errorMessage = runtime.lastError?.message;
 			console.log("disconnected from native host", errorMessage);
 			responseFunc({
 				origin: "native host disconnect", 
@@ -64,11 +66,16 @@ const connectToNativeHost = (request, sender, responseFunc) => {
 	}
 };
 
-chrome.runtime.onConnect.addListener(function (port) {
+runtime.onConnect.addListener(function (port) {
 	if (port.name !== "disk-downloader") return;
-	port.onMessage.addListener(function (msg, sender) {
-		connectToNativeHost(msg, sender, response => {
-			port.postMessage(response);
-		});
-	});
+	port.onMessage.addListener(
+		(msg, sender) => {
+			connectToNativeHost(
+				msg, sender, 
+				responseFn => {
+					port.postMessage(responseFn);
+				}
+			);
+		}
+	);
 });

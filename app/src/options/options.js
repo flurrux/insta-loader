@@ -1,4 +1,5 @@
 
+const { sync } = chrome.storage;
 
 //rules ###
 //downloaded as, username, baseDirectory, folderPath
@@ -183,14 +184,14 @@ document.querySelector("#add-rule-button").addEventListener("click", () => {
 function saveRules(){
     const ruleElements = Array.from(document.querySelector("#rule-list").children);
     const rulesData = ruleElements.map(ruleElement => ruleElement.getRuleData());
-    chrome.storage.sync.set(
+    sync.set(
         { directoryRules: rulesData }, 
         () => console.log("saved")
     )
 }
 
 function restoreOptions() {
-    chrome.storage.sync.get(
+    sync.get(
         {
 			baseDownloadDirectory: "",
 			downloadMethod: "chrome-background", 
@@ -224,7 +225,7 @@ document.addEventListener('DOMContentLoaded', restoreOptions);
 document.querySelector("#download-method").addEventListener("input", (e) => {
 	const selectEl = e.srcElement;
 	const selectedMethod = selectEl[selectEl.selectedIndex].value;
-	chrome.storage.sync.set(
+	sync.set(
 		{ 
 			downloadMethod: selectedMethod 
 		},
@@ -234,7 +235,7 @@ document.querySelector("#download-method").addEventListener("input", (e) => {
 
 //baseDirectory ###
 document.querySelector("#download-directory-input").addEventListener("change", () => {
-    chrome.storage.sync.set(
+    sync.set(
         { baseDownloadDirectory: document.querySelector("#download-directory-input").value }, 
         () => console.log("saved")
     )

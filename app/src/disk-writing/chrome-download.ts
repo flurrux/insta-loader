@@ -1,3 +1,4 @@
+import { runtime } from "webextension-polyfill";
 import { DownloadRequest, DownloadResponse, DownloadErrorResponse, DownloadStateRequest } from "./chrome-download-types";
 
 type ProgressCallback = (progress: number) => void;
@@ -7,7 +8,7 @@ export const download = (
 	progressCallback: ProgressCallback): Promise<void> => {
 
 	return new Promise((resolve, reject) => {
-		const port = chrome.runtime.connect({
+		const port = runtime.connect({
 			name: "chrome-downloader"
 		});
 
