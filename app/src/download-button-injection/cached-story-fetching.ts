@@ -109,12 +109,27 @@ function findCurrentStoryItem(storyData: StoryData) {
 	}
 }
 
+function isStoryCacheStale(cachedData: StoryData): boolean {
+	const currentStoryType = getCurrentStoryType();
+	if (currentStoryType !== cachedData.reel_type) return true;
+	
+	// compare the url-id with each cached story-item. if none matches, the cache is stale
+	const storyIdOpt = findStoryIdInUrl();
+	if (isNone(storyIdOpt)){
+		console.warn("trying to check if the current story-cache is stale by searching for the current story item, given the urls id, but could not find an id in the url. are you sure you are watching a story?");
+		return true;
+	}
+	const storyID = storyIdOpt.value;
+	return !cachedData.items.some(item => item.pk === storyID);
+}
+
 export function makeStoryFetcher() {
 	let cachedStoryData: Option<StoryData> = none;
 
 	return async () => {
 
-		if (isNone(cachedStoryData)) {
+		if (isNone(cachedStoryData) || isStoryCacheStale(cachedStoryData.value)) {
+			console.log("refreshing story cache");
 			const storyDataEith = await fetchCurrentStoryData();
 			if (isLeft(storyDataEith)) throw storyDataEith.left;
 			cachedStoryData = some(storyDataEith.right);

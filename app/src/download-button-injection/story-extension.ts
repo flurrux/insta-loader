@@ -1,3 +1,4 @@
+import { isLeft, left, right } from "fp-ts/es6/Either";
 import { createElementByHTML, querySelectorAncestor } from "../../lib/html-util";
 import { createDiskDownloadButton, DiskDownloadButtonOptions } from "../download-buttons/disk-download-button";
 import { downloadKey, requestDownloadByButton } from "../download-shortcut";
@@ -47,31 +48,21 @@ const createStoryPauseHandle = (): StoryPauseHandle => {
 	}
 };
 
-function findSvgPauseOrPlayButton(){
-	return document.querySelector("header svg") as HTMLElement;
-}
-
 function findStoryPlayButton(){
-	const svgButton = findSvgPauseOrPlayButton();
-	if (!svgButton){
-		console.warn("could not add download-button in story. the svg for the pause/play button could not be found");
-		return;
-	}
-	const playButton = querySelectorAncestor("button", svgButton);
+	const playButton = document.querySelector("header button") as HTMLElement;
 	if (!playButton) {
-		console.warn("could not add download-button in story. the svg for the pause/play button has not button as an ancestor");
-		return;
+		return left("could not add download-button in story. the svg for the pause/play button has not button as an ancestor");
 	}
-	return playButton;
+	return right(playButton);
 }
 
 export const injectDownloadButtonsIntoStory = (storyEl: HTMLElement) => {
 	const container = createElementByHTML(`
-		<div style="margin-right: 20px;"></div>
+		<div style="margin-right: 8px;"></div>
 	`);
 
 	const pauseHandleDownloadOptions = ((): DiskDownloadButtonOptions => {
-		let pauseHandle: StoryPauseHandle = null;
+		let pauseHandle: StoryPauseHandle | null = null;
 		return {
 			onDownloadStart: () => {
 				if (document.querySelector("video")){
@@ -93,7 +84,13 @@ export const injectDownloadButtonsIntoStory = (storyEl: HTMLElement) => {
 	// Object.assign(diskDownloadButton.style, getStoryDownloadElementStyle(storyEl));
 	container.appendChild(diskDownloadButton);
 	
-	const playButton = findStoryPlayButton();
+	const playButtonEither = findStoryPlayButton();
+	if (isLeft(playButtonEither)){
+		console.warn(playButtonEither.left);
+		return;
+	}
+	const playButton = playButtonEither.right;
+
 	const buttonContainer = playButton.parentElement;
 	buttonContainer.insertAdjacentElement("afterbegin", container);
 
