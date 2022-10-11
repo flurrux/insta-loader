@@ -5,9 +5,7 @@ a chrome extension to quickly download any media from [https://instagram.com/](i
 
 this extension breaks occasionally (once every couple of months) due to Instagram updating their website. i do my best to repair it asap whenever that happens. 
 
-## current major issues
-
-i've noticed today that the download button in stories is missing sometimes and other times it will just fail to download. am going to investigate asap. 
+previous breakage was on October 11th 2022, when download-buttons in stories were missing sometimes and other times the story just failed to download. should be fixed now. 
 
 ## current minor bugs are:  
 
