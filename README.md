@@ -3,9 +3,15 @@
 
 a chrome extension to quickly download any media from [https://instagram.com/](instagram.com)  
 
-this extension breaks occasionally (once every couple of months) due to Instagram updating their website. i do my best to repair it asap whenever that happens. 
+this extension breaks occasionally (maybe once a month) due to Instagram updating their website. i do my best to repair it asap whenever that happens.  
 
-previous breakage was on November 3rd 2022, when instagram changed their api url from `i.instagram.com` to `www.instagram.com`. i have updated all api calls to the new url. 
+so before you use this extension, you have to be willing to wait for a fix when something breaks and then [manually re-install the extension](#install).
+
+## previous breakage
+
+the most previous breakage was on November 3rd 2022, when instagram changed their api url from `i.instagram.com` to `www.instagram.com`. i have updated all api calls to the new url. 
+
+---
 
 ## current minor bugs are:  
 
