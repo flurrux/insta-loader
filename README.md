@@ -24,11 +24,6 @@ if it still doesn't work, consider leaving [a bug report here](https://github.co
 - download-buttons on mainfeed, stories and post pages  
 - on the mainfeed or in stories, the enter-key can be pressed to trigger downloads
 
-currently broken: 
-
-- jump to lower/upper post on the mainfeed by `w` (upper post) or `s` (lower post)  
-- navigate left/right on carousels (with multiple pictures/videos) and in stories via the `d` (navigate right) and `a` (navigate left) keys.  
-
 
 downloaded videos/images will be saved in `Downloads/[username]`.  
 so for example if you download an image from [instagram.com/beeple_crap](https://www.instagram.com/beeple_crap/), it will be placed in `Downloads/beeple_crap/`
@@ -47,12 +42,6 @@ so for example if you download an image from [instagram.com/beeple_crap](https:/
 <img src="./demo/story-download.gif" style="max-height: 350px;" />
 
 <div style="height: 20px;"></div>
-
-### download from userpage:  
-
-<img src="./demo/userpage-download.gif" style="max-height: 350px;" />
-
-(longer gifs are intentionally choppy to reduce filesize)
 
 # install
 
