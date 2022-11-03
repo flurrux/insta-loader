@@ -1,8 +1,9 @@
 import { right } from "fp-ts/es6/Either";
 import { getCurrentHeadersOrThrow } from "./request-header-collection/foreground-collector";
+import { makeApiUrl } from "./url-maker";
 
 function makeMediaFetchUrl(mediaId: string): string {
-	return `https://i.instagram.com/api/v1/media/${mediaId}/info/`
+	return makeApiUrl(`media/${mediaId}/info/`);
 }
 
 export async function fetchMediaInfo(headers: Record<string, string>, mediaID: string) {

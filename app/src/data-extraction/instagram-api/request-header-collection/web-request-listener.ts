@@ -53,11 +53,11 @@ function detectHeaders(details: HeadersDetails){
 
 function detectMediaID(details: HeadersDetails){
 	const { tabId, url } = details;
-	const mediaIdMatch = /(?<=i\.instagram\.com\/api\/v1\/media\/)\d*(?=\/info)/.exec(url);
+	const mediaIdMatch = /(?<=instagram\.com\/api\/v1\/media\/)\d*(?=\/info)/.exec(url);
 	if (!mediaIdMatch) return;
 	
 	const mediaID = mediaIdMatch[0];
-	console.log("detected media ID!");
+	console.log("detected media ID!", mediaID);
 	tabs.sendMessage(
 		tabId, { mediaID }
 	);
@@ -68,12 +68,16 @@ function detectMediaID(details: HeadersDetails){
 
 webRequest.onSendHeaders.addListener(
 	function (details) {
-		detectHeaders(details);
+		// trying out static headers currently. 
+		// if it's not working, enable this next line again:
+		// detectHeaders(details);
+
 		detectMediaID(details);
 	},
 	{
 		urls: [
-			"*://i.instagram.com/api/*"
+			"*://i.instagram.com/api/*",
+			"*://www.instagram.com/api/*"
 		]
 	},
 	["requestHeaders"]

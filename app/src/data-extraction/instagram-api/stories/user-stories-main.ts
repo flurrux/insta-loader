@@ -1,8 +1,9 @@
 import { isLeft, right } from "fp-ts/es6/Either";
 import { getCurrentHeadersOrThrow } from "../request-header-collection/foreground-collector";
+import { makeApiUrl } from "../url-maker";
 
 function makeStoriesFetchUrl(userID: string): string {
-	return `https://i.instagram.com/api/v1/feed/reels_media/?reel_ids=${userID}`
+	return makeApiUrl(`feed/reels_media/?reel_ids=${userID}`);
 }
 
 export async function fetchUserStoryData(headers: Record<string, string>, mediaID: string) {

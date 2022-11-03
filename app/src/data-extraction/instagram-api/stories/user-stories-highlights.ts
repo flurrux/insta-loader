@@ -3,9 +3,10 @@ import { pipe } from "fp-ts/es6/function";
 import { isNone } from "fp-ts/es6/Option";
 import { makeRegexFn } from "../../../../lib/first-regex-match-or-null";
 import { getCurrentHeadersAsEither } from "../request-header-collection/foreground-collector";
+import { makeApiUrl } from "../url-maker";
 
 function makeStoriesFetchUrl(reelID: string): string {
-	return `https://i.instagram.com/api/v1/feed/reels_media/?reel_ids=highlight%3A${reelID}`
+	return makeApiUrl(`feed/reels_media/?reel_ids=highlight%3A${reelID}`);
 }
 
 export const getCurrentStoryHighlightID = () => pipe(
