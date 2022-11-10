@@ -30,6 +30,10 @@ export const getCurrentPageType = (): InstaPageType => {
 	}
 };
 
+export const isSinglePostType = (type: InstaPageType) => (
+	type === "post" || type === "reel"
+);
+
 interface InstaNavigationChangeData {
 	oldHref: string,
 	newHref: string,

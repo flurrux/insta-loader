@@ -1,5 +1,5 @@
 import { isLeft } from "fp-ts/es6/Either";
-import { getCurrentPageType } from "../../insta-navigation-observer";
+import { getCurrentPageType, isSinglePostType } from "../../insta-navigation-observer";
 import { getHrefOfPost } from "../directly-in-browser/post-href";
 import { findTypeOfPost } from "../directly-in-browser/post-type";
 import { findUsernameInPost } from "../directly-in-browser/post-username";
@@ -35,8 +35,8 @@ export const makeLazyMediaExtractor = (postElement: HTMLElement) => {
 			}
 		}
 
-		if (getCurrentPageType() !== "post"){
-			console.warn("please open the page of this post in a new tab. downloading videos directly from the mainfeed is not working right now unfortunately. we're working on a fix!");
+		if (!isSinglePostType(getCurrentPageType())){
+			console.warn("please open the page of this post in a new tab. downloading videos directly from the mainfeed is currently not supported.");
 			return;
 		}
 
