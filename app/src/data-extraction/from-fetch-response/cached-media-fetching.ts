@@ -10,7 +10,7 @@ import { queryMediaElement } from "../directly-in-browser/media-and-src/query-me
 import { getMediaSrc } from "../directly-in-browser/media-and-src/src-from-img-or-video";
 import { findMediaEntryByCarousel } from "./find-carousel-item";
 import { MediaInfo, PostType, SingleMediaInfo } from "./types";
-import { findMediaEntryByIndicatorDots } from "./indicator-dots";
+import { findMediaEntryByIndicatorDots } from "../directly-in-browser/carousel/indicator-dots";
 
 
 function tryGetImageSrc(postType: PostType, postElement: HTMLElement){

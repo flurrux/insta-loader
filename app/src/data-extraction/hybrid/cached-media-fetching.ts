@@ -3,7 +3,7 @@ import { getCurrentPageType, isSinglePostType } from "../../insta-navigation-obs
 import { getHrefOfPost } from "../directly-in-browser/post-href";
 import { findTypeOfPost } from "../directly-in-browser/post-type";
 import { findUsernameInPost } from "../directly-in-browser/post-username";
-import { findMediaEntryByIndicatorDots } from "../from-fetch-response/indicator-dots";
+import { findMediaEntryByIndicatorDots } from "../directly-in-browser/carousel/indicator-dots";
 import { MediaInfo, PostType } from "../from-fetch-response/types";
 import { SingleMediaInfo } from "../media-types";
 import { fetchMediaOnCurrentPageAndExtract } from "./media-of-post";

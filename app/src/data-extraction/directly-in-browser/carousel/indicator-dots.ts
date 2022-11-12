@@ -1,6 +1,6 @@
 import { Either, isLeft, left, right } from "fp-ts/es6/Either";
 import { isNone, none, Option, some } from "fp-ts/es6/Option";
-import { VideoOrImgInfo } from "./types";
+import { VideoOrImgInfo } from "../../from-fetch-response/types";
 
 export function findMediaEntryByIndicatorDots(mediaArray: VideoOrImgInfo[], postElement: HTMLElement) {
 	const indicatorDotIndexEith = findIndicatorDotIndex(postElement);
