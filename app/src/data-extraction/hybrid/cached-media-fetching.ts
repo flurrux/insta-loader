@@ -1,9 +1,9 @@
-import { isLeft } from "fp-ts/es6/Either";
+import { isLeft, right } from "fp-ts/es6/Either";
 import { getCurrentPageType, isSinglePostType } from "../../insta-navigation-observer";
 import { getHrefOfPost } from "../directly-in-browser/post-href";
 import { findTypeOfPost } from "../directly-in-browser/post-type";
 import { findUsernameInPost } from "../directly-in-browser/post-username";
-import { findMediaEntryByCarousel } from "../from-fetch-response/find-carousel-item";
+import { findMediaEntryByIndicatorDots } from "../from-fetch-response/indicator-dots";
 import { MediaInfo, PostType } from "../from-fetch-response/types";
 import { SingleMediaInfo } from "../media-types";
 import { fetchMediaOnCurrentPageAndExtract } from "./media-of-post";
@@ -57,11 +57,11 @@ export const makeLazyMediaExtractor = (postElement: HTMLElement) => {
 		}
 
 		const { username, mediaArray } = currentMediaInfo;
-		const videoOrImgInfo = currentPostType === "collection" ? findMediaEntryByCarousel(mediaArray, postElement) : mediaArray[0];
-		if (!videoOrImgInfo) {
-			console.error("could not find media of the current collection item!");
+		const videoOrImgInfo = currentPostType === "collection" ? findMediaEntryByIndicatorDots(mediaArray, postElement) : right(mediaArray[0]);
+		if (isLeft(videoOrImgInfo)) {
+			console.error(videoOrImgInfo.left);
 			return;
 		}
-		return { username, ...videoOrImgInfo }
+		return { username, ...videoOrImgInfo.right }
 	}
 };

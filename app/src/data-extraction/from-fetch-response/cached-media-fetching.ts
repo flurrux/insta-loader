@@ -1,4 +1,4 @@
-import { Either, isLeft } from "fp-ts/es6/Either";
+import { Either, isLeft, right } from "fp-ts/es6/Either";
 import { getCurrentCarouselIndexWithListAndChild } from "../directly-in-browser/carousel/carousel-index";
 import { getCarouselMediaByPostElement } from "../directly-in-browser/carousel/carousel-media";
 import { getMediaSrcByPostElement } from "../directly-in-browser/media-and-src/media-extraction";
@@ -10,6 +10,7 @@ import { queryMediaElement } from "../directly-in-browser/media-and-src/query-me
 import { getMediaSrc } from "../directly-in-browser/media-and-src/src-from-img-or-video";
 import { findMediaEntryByCarousel } from "./find-carousel-item";
 import { MediaInfo, PostType, SingleMediaInfo } from "./types";
+import { findMediaEntryByIndicatorDots } from "./indicator-dots";
 
 
 function tryGetImageSrc(postType: PostType, postElement: HTMLElement){
@@ -69,12 +70,12 @@ export const createMediaFetcherBySrcElementAndFetchFunc = (fetchFunc: FetchFunc)
 			currentMediaInfo = fetchResult.right;
 		}
 		const { username, mediaArray } = currentMediaInfo;
-		const videoOrImgInfo = currentPostType === "collection" ? findMediaEntryByCarousel(mediaArray, postElement) : mediaArray[0];
-		if (!videoOrImgInfo) {
-			console.error("could not find media of the current collection item!");
+		const videoOrImgInfo = currentPostType === "collection" ? findMediaEntryByIndicatorDots(mediaArray, postElement) : right(mediaArray[0]);
+		if (isLeft(videoOrImgInfo)){
+			console.error(videoOrImgInfo.left);
 			return;
 		}
-		return { username, ...videoOrImgInfo }
+		return { username, ...videoOrImgInfo.right }
 	}
 };
 

@@ -3,6 +3,8 @@ import { getCurrentCarouselElement } from '../directly-in-browser/carousel/carou
 import { ImgInfo, VideoInfo, VideoOrImgInfo } from "./types";
 import { queryMediaElement } from "../directly-in-browser/media-and-src/query-media-element";
 import { getFirstMatchOrNull } from "../../../lib/first-regex-match-or-null";
+import { Either, left, right } from "fp-ts/es6/Either";
+import { isNone, none, Option, some } from "fp-ts/es6/Option";
 
 
 /**
