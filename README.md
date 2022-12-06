@@ -9,7 +9,7 @@ so before you use this extension, you have to be willing to wait for a fix when 
 
 ## previous breakage
 
-the most previous breakage was on November 12rd 2022, when instagram removed poster images from videos in collections which broke the algorithm that chooses what video is downloaded from the collection. i've switched to a different method that looks for the indicator dots and which one of them looks distinct (aka selected) but it is by far not perfect. it may fail at any time or just give the wrong collection item.  
+the most previous breakage was on November 12 2022, when instagram removed poster images from videos in collections which broke the algorithm that chooses what video is downloaded from the collection. i've switched to a different method that looks for the indicator dots and which one of them looks distinct (aka selected) but it is by far not perfect. it may fail at any time or just give the wrong collection item.  
 therefore, always check that the image/video you just downloaded from a collection is the right one! 
 
 
