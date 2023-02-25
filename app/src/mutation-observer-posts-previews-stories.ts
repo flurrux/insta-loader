@@ -1,6 +1,7 @@
 
 import { flow } from 'fp-ts/es6/function';
 import { getElementTypesOnCurrentPage, InstaElementType } from './data-extraction/is-currently-post-story-or-preview';
+import { getCurrentPageType } from './insta-navigation-observer';
 
 
 /**
@@ -41,8 +42,20 @@ const queryPreviewElements = flow(
 );
 
 function queryPostElements(element: HTMLElement): HTMLElement[] {
-	if (element.tagName == "ARTICLE")  return [element];
-	return Array.from(element.querySelectorAll("article"));
+	// article elements seem to only appear on the main feed. 
+	if ( getCurrentPageType() === "mainFeed" ){
+		if (element.tagName == "ARTICLE")  return [ element ];
+		const articles = Array.from( element.querySelectorAll("article") );
+		if (articles.length > 0) return articles;
+	}
+	else {
+		// on single post pages, it seems that article elements have been replaced by main elements. 
+		if (element.tagName == "MAIN") return [ element ];
+		const mains = Array.from( element.querySelectorAll("main") );
+		return mains;
+	}
+	
+	return [];
 }
 
 function queryStoryElements(root: HTMLElement): HTMLElement[] {
@@ -112,11 +125,11 @@ function onNodeExistenceChanged(node: HTMLElement, added: boolean){
 
 	let elementTypes = getElementTypesOnCurrentPage();
 	for (let observer of observedElementTypes){
-		if (observer.matchesType(elementTypes)){
-			let contained = observer.getContainedElements(node);
-			let foreachFunc = added ? observer.onAdded.bind(observer) : observer.onRemoved.bind(observer);
-			contained.forEach(foreachFunc);
-		}
+		if (!observer.matchesType(elementTypes)) continue;
+
+		let contained = observer.getContainedElements(node);
+		let foreachFunc = added ? observer.onAdded.bind(observer) : observer.onRemoved.bind(observer);
+		contained.forEach(foreachFunc);
 	}
 }
 

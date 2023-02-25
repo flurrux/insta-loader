@@ -15,73 +15,31 @@ function objectifyRequestHeaders(headers: WebRequest.HttpHeadersItemType[]) {
 	return obj;
 }
 
-type HeadersDetails = WebRequest.OnSendHeadersDetailsType;
-
-function detectHeaders(details: HeadersDetails){
-	const { tabId, requestHeaders } = details;
-	if (!requestHeaders) return;
-
-	const wwwClaimHeader = requestHeaders.find(
-		(header) => header.name === "X-IG-WWW-Claim"
-	);
-	if (!wwwClaimHeader) return;
-	const wwwClaimValue = wwwClaimHeader.value;
-	if (!wwwClaimValue) return;
-	// so far, i've only seen lengthy www-claim values, like more than 20 characters, and occasionally values like "0".  
-	if (wwwClaimValue.length < 2) return;
-
-	// by experimentation, i've found that the two header values X-IG-App-ID and X-IG-WWW-Claim are sufficient
-	const sufficientHeaderNames = [
-		"X-IG-App-ID", "X-IG-WWW-Claim"
-	];
-	const minimalHeaders = objectifyRequestHeaders(
-		requestHeaders.filter(
-			(entry) => sufficientHeaderNames.includes(entry.name)
-		)
-	);
-
-	console.log("detected valid headers", minimalHeaders);
-
-	tabs.sendMessage(
-		tabId,
-		{ requestHeaders: minimalHeaders }
-	);
-}
-
-
-// ## media ID ##
-
-function detectMediaID(details: HeadersDetails){
-	const { tabId, url } = details;
-	const mediaIdMatch = /(?<=instagram\.com\/api\/v1\/media\/)\d*(?=\/info)/.exec(url);
-	if (!mediaIdMatch) return;
-	
-	const mediaID = mediaIdMatch[0];
-	console.log("detected media ID!", mediaID);
-	tabs.sendMessage(
-		tabId, { mediaID }
-	);
-}
-
 
 // ## listener ##
 
 webRequest.onSendHeaders.addListener(
-	function (details) {
-		// trying out static headers currently. 
-		// if it's not working, enable this next line again:
-		// detectHeaders(details);
-
-		detectMediaID(details);
+	(details) => {
+		tabs.sendMessage(
+			details.tabId, 
+			{ requestHeaders: objectifyRequestHeaders(details.requestHeaders) }
+		);
 	},
-	{
-		urls: [
-			"*://i.instagram.com/api/*",
-			"*://www.instagram.com/api/*"
-		]
-	},
-	["requestHeaders"]
+	{ urls: [ "*://www.instagram.com/graphql/query" ] },
+	[ "requestHeaders" ]
 );
+
+webRequest.onBeforeRequest.addListener(
+	(details) => {
+		tabs.sendMessage(
+			details.tabId,
+			{ requestBody: details.requestBody?.formData }
+		);
+	},
+	{ urls: ["*://www.instagram.com/graphql/query"] },
+	[ "requestBody" ]
+);
+
 
 // this listener is needed to wake up the background script whenever we navigate to instagram.
 // see https://stackoverflow.com/a/71431963

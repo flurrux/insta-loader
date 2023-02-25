@@ -1,3 +1,4 @@
+import { waitForElementExistence } from "../../lib/await-element";
 import { createElementByHTML } from "../../lib/html-util";
 import { tryMultiAndDelayed } from "../../lib/multi-try-delayed";
 import { observeCarouselIndex } from "../carousel-index-observer";
@@ -120,7 +121,6 @@ async function autoShowLinkForMainFeedVideos(
 	observeCarouselIndex(
 		carouselElement,
 		({ child }) => {
-			console.log(child);
 			const mediaElement = queryMediaElement(child);
 			if (!mediaElement) return;
 			setDownloadButtonVisible(
@@ -130,9 +130,9 @@ async function autoShowLinkForMainFeedVideos(
 	);
 }
 
-export function injectDownloadButtonsIntoPost(postElement: HTMLElement){
+function injectDownloadButtonsIntoMainFeedPost(postElement: HTMLElement) {
 	const sectionEl = postElement.querySelector("section");
-	if (!sectionEl){
+	if (!sectionEl) {
 		console.warn(`trying to inject download buttons into post, but cannot find any child with tag 'Section'`);
 		return;
 	}
@@ -142,6 +142,49 @@ export function injectDownloadButtonsIntoPost(postElement: HTMLElement){
 
 	const downloadButton = makeAndPrepareDownloadButton(postElement);
 	sectionEl.appendChild(downloadButton);
-	
+
 	autoShowLinkForMainFeedVideos(linkButton, downloadButton, postElement);
-};
+}
+
+async function injectDownloadButtonsIntoSinglePagePost(postElement: HTMLElement) {
+	// single-page posts have a child node of tag `section` that contains the number of likes and the profile picture of some user that has liked the post.
+	// its previous sibling is the like & comment & save - bar.
+	
+	// immediately querying the element doesn't work. i suppose the page is not ready at that point. 
+	// thus i'm forced to lookup the element periodically until it is found. i've chosen an interval of 500 milliseconds and a maximum number of 10 attempts. 
+
+	const sectionElement = await waitForElementExistence(200, 10, postElement, "section");
+	if (!sectionElement) {
+		console.warn(`trying to inject download buttons into post, but cannot find any child with tag 'Section' that was expected to be in the following element: `, postElement);
+		return;
+	}
+
+	const likeCommentShareBar = sectionElement.previousElementSibling;
+	if (!likeCommentShareBar){
+		console.warn("trying to inject download button into post, but cannot find the bar with the like, comment, share buttons. it was supposed to be the previous sibling of the following element: ", sectionElement);
+		return;
+	}
+
+	const downloadButton = makeAndPrepareDownloadButton(postElement);
+	likeCommentShareBar.appendChild(downloadButton);
+
+	const buttonSize = likeCommentShareBar.querySelector("svg")?.width.baseVal.value;
+	if (buttonSize !== undefined){
+		Object.assign(
+			( downloadButton.querySelector("img") as HTMLImageElement ).style,
+			{
+				width: `${buttonSize}px`,
+				height: `${buttonSize}px`
+			}
+		);
+	}
+}
+
+export function injectDownloadButtonsIntoPost(postElement: HTMLElement){
+	if ( getCurrentPageType() === "mainFeed" ){
+		injectDownloadButtonsIntoMainFeedPost(postElement);
+	}
+	else {
+		injectDownloadButtonsIntoSinglePagePost(postElement);
+	}
+}

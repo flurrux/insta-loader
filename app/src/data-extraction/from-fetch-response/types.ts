@@ -6,12 +6,18 @@ export type VersionItem = {
 };
 
 export type VideoItem = {
+	"carousel_media": null,
 	"video_versions": VersionItem[],
 	"image_versions2": {
 		"candidates": VersionItem[]
-	}
+	},
+	"video_dash_manifest": string | null
 };
 export type ImageItem = {
+	"carousel_media": null,
+	"video_versions": null,
+	"video_dash_manifest": string | null
+
 	"image_versions2": {
 		"candidates": VersionItem[]
 	}
@@ -19,6 +25,8 @@ export type ImageItem = {
 export type VideoOrImgItem = VideoItem | ImageItem;
 
 export type CarouselItem = {
+	"video_versions": null,
+	"image_versions2": null,
 	"carousel_media": VideoOrImgItem[]
 };
 

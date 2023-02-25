@@ -264,13 +264,13 @@ function extractMediaDataFromApationSet(mediaSet: Element): AdaptationSetExtract
 			context: mediaSet
 		});
 	}
-	console.log(childrenWithBandwidth);
+	// console.log(childrenWithBandwidth);
 	const maxQualityNode = pipe(
 		childrenWithBandwidth as NonEmptyArray<Element>,
 		maxBandwidthElement
 	);
 	const maxQualityUrlEither = findBaseUrlContent(maxQualityNode);
-	console.log(maxQualityUrlEither);
+	// console.log(maxQualityUrlEither);
 	if (isLeft(maxQualityUrlEither)) return maxQualityUrlEither;
 		
 	const maxBandwidth = getBandwidthOfElement(maxQualityNode);

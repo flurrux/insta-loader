@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "insta-loader",
   "description": "download buttons for instagram media.",
-  "version": "1.3.9",
+  "version": "1.3.10",
   "icons": {
     "16": "assets/icons/insta-loader-icon-16.png",
     "48": "assets/icons/insta-loader-icon-48.png",
@@ -15,7 +15,7 @@
   "content_scripts": [
     {
       "js": [
-        "assets/content-script-loader.index.ts.9d29908a.9a28616e.js"
+        "assets/content-script-loader.index.ts.9b02f6be.0a01cf15.js"
       ],
       "run_at": "document_start",
       "matches": [
@@ -53,8 +53,8 @@
         "*://www.instagram.com/*"
       ],
       "resources": [
-        "assets/vendor.098fb94a.js",
-        "assets/index.ts.9d29908a.js"
+        "assets/vendor.adf0e26f.js",
+        "assets/index.ts.9b02f6be.js"
       ],
       "use_dynamic_url": true
     }

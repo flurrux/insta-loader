@@ -20,14 +20,14 @@ function getBestQualityVersion(versions: VersionItem[]): string {
 
 
 function getVersions(item: VideoOrImgItem): VersionItem[] {
-	if ("video_versions" in item) return item.video_versions;
+	if (item["video_versions"]) return item.video_versions;
 	return item["image_versions2"]["candidates"];
 }
 
 const getMediaSrcFromSingleItem = flow(getVersions, getBestQualityVersion);
 
 function extractVideoAndAudioFromDashManifest(item: VideoOrImgItem): Option<VideoOrImgInfo> {
-	if (!("video_dash_manifest" in item)) return none;
+	if (!item["video_dash_manifest"]) return none;
 	const dashDataEither = parseDashManifestAndExtractData(
 		item["video_dash_manifest"]
 	);
@@ -50,16 +50,17 @@ function extractVideoAndAudioFromDashManifest(item: VideoOrImgItem): Option<Vide
 }
 
 export function getMediaInfoFromSingleItem(item: VideoOrImgItem): VideoOrImgInfo {
-	if ("video_versions" in item) {
+	if (item["video_versions"]) {
 		const manifestExtraction = extractVideoAndAudioFromDashManifest(item);
 		if (isSome(manifestExtraction)) {
 			return manifestExtraction.value;
 		}
+
 		return {
 			type: "video",
 			src: getBestQualityVersion(item["video_versions"]),
 			previewSrc: item["image_versions2"]["candidates"][0].url
-		}
+		};
 	}
 
 	const imgSrc = getBestQualityVersion(item["image_versions2"]["candidates"]);
@@ -91,21 +92,21 @@ export function getMediaInfoFromResponseObject(responseObject: object): MediaInf
 
 	let postType: PostType = "video";
 
-	if ("video_versions" in item) {
+	if (item["video_versions"]) {
 		postType = "video";
 		mediaArray.push(
 			getMediaInfoFromSingleItem(item)
 		);
 	}
 
-	if ("image_versions2" in item) {
+	if (item["image_versions2"]) {
 		postType = "image";
 		mediaArray.push(
 			getMediaInfoFromSingleItem(item)
 		);
 	}
 
-	if ("carousel_media" in item) {
+	if (item["carousel_media"]) {
 		postType = "collection";
 		mediaArray = getMediaInfoFromCarousel(item);
 	}

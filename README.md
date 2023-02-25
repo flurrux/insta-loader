@@ -9,11 +9,11 @@ so before you use this extension, you have to be willing to wait for a fix when 
 
 ## previous breakage
 
-the most previous breakage was on November 12 2022, when instagram removed poster images from videos in collections which broke the algorithm that chooses what video is downloaded from the collection. i've switched to a different method that looks for the indicator dots and which one of them looks distinct (aka selected) but it is by far not perfect. it may fail at any time or just give the wrong collection item.  
-therefore, always check that the image/video you just downloaded from a collection is the right one! 
+On February 25 2023, i've noticed that download buttons where missing on pages with a single post (those of the pattern `https://www.instagram.com/p/[postID]/`). Instagram had introduced a number of changes that partially broke this extension. stories and the mainfeed were not affected by this, as far as i can tell.  
+the fix is ready and can be downloaded in the latest release.
 
 
-## current minor bugs are:  
+## current limitations are:  
 
 - audio is missing from downloaded videos. the reason is that video- and audio parts on instagram are stored in separate files on their servers. when you press download, only the video-part is downloaded. merging the parts into one mp4-file is possible, but the code required will bloat this extension immensely (~20 megabytes). an alternative is to simply download both video and audio together. will have to think more about this.
 
