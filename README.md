@@ -9,8 +9,7 @@ so before you use this extension, you have to be willing to wait for a fix when 
 
 ## previous breakage
 
-On February 25 2023, i've noticed that download buttons where missing on pages with a single post (those of the pattern `https://www.instagram.com/p/[postID]/`). Instagram had introduced a number of changes that partially broke this extension. stories and the mainfeed were not affected by this, as far as i can tell.  
-the fix is ready and can be downloaded in the latest release.
+On March 25th 2023, i've noticed that download-buttons were missing on single-post pages. this should be resolved by the latest release (1.3.12).
 
 
 ## current limitations are:  

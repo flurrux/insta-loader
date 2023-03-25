@@ -18,6 +18,35 @@ function objectifyRequestHeaders(headers: WebRequest.HttpHeadersItemType[]) {
 
 // ## listener ##
 
+
+// # api #
+
+function detectMediaID(details: WebRequest.OnSendHeadersDetailsType) {
+	const { tabId, url } = details;
+	const mediaIdMatch = /(?<=instagram\.com\/api\/v1\/media\/)\d*(?=\/info)/.exec(url);
+	if (!mediaIdMatch) return;
+
+	const mediaID = mediaIdMatch[0];
+	console.log("detected media ID!", mediaID);
+	tabs.sendMessage(
+		tabId, { mediaID }
+	);
+}
+
+webRequest.onSendHeaders.addListener(
+	detectMediaID,
+	{
+		urls: [
+			"*://i.instagram.com/api/*",
+			"*://www.instagram.com/api/*"
+		]
+	},
+	["requestHeaders"]
+);
+
+
+// # graphql #
+
 webRequest.onSendHeaders.addListener(
 	(details) => {
 		tabs.sendMessage(
@@ -39,6 +68,7 @@ webRequest.onBeforeRequest.addListener(
 	{ urls: ["*://www.instagram.com/graphql/query"] },
 	[ "requestBody" ]
 );
+
 
 
 // this listener is needed to wake up the background script whenever we navigate to instagram.

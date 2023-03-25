@@ -159,11 +159,7 @@ async function injectDownloadButtonsIntoSinglePagePost(postElement: HTMLElement)
 		return;
 	}
 
-	const likeCommentShareBar = sectionElement.previousElementSibling;
-	if (!likeCommentShareBar){
-		console.warn("trying to inject download button into post, but cannot find the bar with the like, comment, share buttons. it was supposed to be the previous sibling of the following element: ", sectionElement);
-		return;
-	}
+	const likeCommentShareBar = sectionElement;
 
 	const downloadButton = makeAndPrepareDownloadButton(postElement);
 	likeCommentShareBar.appendChild(downloadButton);

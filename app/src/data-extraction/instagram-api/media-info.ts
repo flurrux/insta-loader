@@ -1,9 +1,13 @@
-import { isLeft, left, right } from "fp-ts/es6/Either";
+import { isLeft, isRight, left, right } from "fp-ts/es6/Either";
 import { stringifyRequestBody } from "../../../lib/stringify-request-body";
 import { getRequestHeadersAndBody, RequestHeadersAndBody } from "./request-header-collection/foreground-collector";
+import { getCurrentMediaID } from "./request-header-collection/media-id-collector";
+import { makeApiUrl } from "./url-maker";
 
 
-async function fetchMediaInfo(headersAndBody: RequestHeadersAndBody) {
+// # graphl #
+
+async function fetchMediaInfoByGraphql(headersAndBody: RequestHeadersAndBody) {
 	const { headers, body } = headersAndBody;
 	const bodyStringified = stringifyRequestBody(body);
 	try {
@@ -24,19 +28,43 @@ async function fetchMediaInfo(headersAndBody: RequestHeadersAndBody) {
 	}
 }
 
+// # api #
+
+function makeMediaFetchUrl(mediaId: string): string {
+	return makeApiUrl(`media/${mediaId}/info/`);
+}
+
+export async function fetchMediaInfoByApi(headersAndBody: RequestHeadersAndBody) {
+	const mediaIdEith = getCurrentMediaID();
+	if (isLeft(mediaIdEith)) return mediaIdEith;
+	const mediaID = mediaIdEith.right;
+	const { headers } = headersAndBody;
+
+	const response = await fetch(
+		makeMediaFetchUrl(mediaID),
+		{ credentials: "include", headers }
+	);
+	return right(await response.json() as object);
+}
+
+
 export async function fetchMediaInfoWithCurrentHeaders(){
 	const headersAndBodyEith = getRequestHeadersAndBody();
 	if (isLeft(headersAndBodyEith)) return headersAndBodyEith;
+	const headersAndBody = headersAndBodyEith.right;
 
-	const mediaInfoEith = await fetchMediaInfo(headersAndBodyEith.right);
-	if (isLeft(mediaInfoEith)) return mediaInfoEith;
+	let mediaInfoByApi = await fetchMediaInfoByApi(headersAndBody);
+	if (isRight(mediaInfoByApi)) return mediaInfoByApi;
 
-	const mediaInfo = mediaInfoEith.right;
-	const mediaInfoUnpacked = (mediaInfoEith.right as any )?.data?.xdt_api__v1__media__shortcode__web_info;
+
+	// api call with media id did not work, try graphql next ...
+	const mediaInfoByGraphql = await fetchMediaInfoByGraphql(headersAndBody);
+	if (isLeft(mediaInfoByGraphql)) return mediaInfoByGraphql;
+	const mediaInfoUnpacked = (mediaInfoByGraphql.right as any).data?.xdt_api__v1__media__shortcode__web_info;
 	if (mediaInfoUnpacked === undefined){
 		return left({
 			message: "`response.data.xdt_api__v1__media__shortcode__web_info` is not defined",
-			response: mediaInfo
+			response: mediaInfoByGraphql.right
 		});
 	}
 

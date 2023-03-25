@@ -1,9 +1,13 @@
+import { pipe } from "fp-ts/es6/function";
 import { VideoOrImageElement } from "../../media-types";
 
 
 function queryLargestImage(parent: HTMLElement){
-	return Array.from(parent.querySelectorAll("img"))
-		.find(img => img.offsetHeight > 400);
+	return pipe(
+		parent.querySelectorAll("img"),
+		Array.from,
+		(array: HTMLImageElement[]) => array.find( img => img.naturalWidth > 400 )
+	)
 };
 
 export function queryMediaElement(parent: HTMLElement){

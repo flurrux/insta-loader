@@ -20,7 +20,7 @@ export const makeLazyMediaExtractor = (postElement: HTMLElement) => {
 		if (!currentPostType) {
 			currentPostType = findTypeOfPost(postElement);
 			if (!currentPostType) {
-				console.error("could not find type of post");
+				console.error("could not find type of post", postElement);
 				return;
 			}
 		}
