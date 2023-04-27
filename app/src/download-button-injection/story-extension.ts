@@ -81,6 +81,14 @@ export const injectDownloadButtonsIntoStory = (storyEl: HTMLElement) => {
 		makeStoryFetcher(),
 		pauseHandleDownloadOptions
 	);
+
+	const targetSize = 24;
+	// make the button a little smaller to better fit in with its siblings:
+	Object.assign(
+		diskDownloadButton.style,
+		{ width: `${targetSize}px` }
+	);
+
 	// Object.assign(diskDownloadButton.style, getStoryDownloadElementStyle(storyEl));
 	container.appendChild(diskDownloadButton);
 	

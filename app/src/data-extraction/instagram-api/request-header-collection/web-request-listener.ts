@@ -47,14 +47,21 @@ webRequest.onSendHeaders.addListener(
 
 // # graphql #
 
+const graphqlUrls: string[] = [
+	// "*://www.instagram.com/graphql/query",
+	"*://www.instagram.com/api/graphql"
+];
+
 webRequest.onSendHeaders.addListener(
 	(details) => {
+		const { requestHeaders } = details;
+		if (!requestHeaders) return;
 		tabs.sendMessage(
 			details.tabId, 
-			{ requestHeaders: objectifyRequestHeaders(details.requestHeaders) }
+			{ requestHeaders: objectifyRequestHeaders(requestHeaders) }
 		);
 	},
-	{ urls: [ "*://www.instagram.com/graphql/query" ] },
+	{ urls: graphqlUrls },
 	[ "requestHeaders" ]
 );
 
@@ -65,7 +72,7 @@ webRequest.onBeforeRequest.addListener(
 			{ requestBody: details.requestBody?.formData }
 		);
 	},
-	{ urls: ["*://www.instagram.com/graphql/query"] },
+	{ urls: graphqlUrls },
 	[ "requestBody" ]
 );
 

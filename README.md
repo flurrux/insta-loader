@@ -9,7 +9,7 @@ so before you use this extension, you have to be willing to wait for a fix when 
 
 ## previous breakage
 
-On March 25th 2023, i've noticed that download-buttons were missing on single-post pages. this should be resolved by the latest release (1.3.12).
+On April 27th 2023, i've noticed that download-buttons were missing on single-post pages again. this should be resolved by the latest release (1.3.13).
 
 
 ## current limitations are:  

@@ -12,7 +12,7 @@ async function fetchMediaInfoByGraphql(headersAndBody: RequestHeadersAndBody) {
 	const bodyStringified = stringifyRequestBody(body);
 	try {
 		const response = await fetch(
-			"https://www.instagram.com/graphql/query",
+			"https://www.instagram.com/api/graphql",
 			{
 				method: 'POST',
 				credentials: "include", 
@@ -55,15 +55,16 @@ export async function fetchMediaInfoWithCurrentHeaders(){
 
 	let mediaInfoByApi = await fetchMediaInfoByApi(headersAndBody);
 	if (isRight(mediaInfoByApi)) return mediaInfoByApi;
-
+	console.warn(mediaInfoByApi.left);
 
 	// api call with media id did not work, try graphql next ...
 	const mediaInfoByGraphql = await fetchMediaInfoByGraphql(headersAndBody);
 	if (isLeft(mediaInfoByGraphql)) return mediaInfoByGraphql;
-	const mediaInfoUnpacked = (mediaInfoByGraphql.right as any).data?.xdt_api__v1__media__shortcode__web_info;
+	const mediaInfoKey = "xdt_api__v1__media__shortcode__web_info";
+	const mediaInfoUnpacked = (mediaInfoByGraphql.right as any).data?.[mediaInfoKey];
 	if (mediaInfoUnpacked === undefined){
 		return left({
-			message: "`response.data.xdt_api__v1__media__shortcode__web_info` is not defined",
+			message: `'response.data.${mediaInfoKey}' is not defined`,
 			response: mediaInfoByGraphql.right
 		});
 	}

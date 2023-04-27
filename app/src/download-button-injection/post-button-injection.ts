@@ -1,5 +1,6 @@
+import { pipe } from "fp-ts/es6/function";
 import { waitForElementExistence } from "../../lib/await-element";
-import { createElementByHTML } from "../../lib/html-util";
+import { createElementByHTML, querySelectorAncestor } from "../../lib/html-util";
 import { tryMultiAndDelayed } from "../../lib/multi-try-delayed";
 import { observeCarouselIndex } from "../carousel-index-observer";
 import { getCurrentCarouselElement } from "../data-extraction/directly-in-browser/carousel/carousel-item";
@@ -10,6 +11,8 @@ import { makeLazyMediaExtractor } from "../data-extraction/hybrid/cached-media-f
 import { createDiskDownloadButton, MediaWriteInfo } from "../download-buttons/disk-download-button";
 import { makeLinkButton } from "../download-buttons/link-button";
 import { getCurrentPageType } from "../insta-navigation-observer";
+import { Predicate } from "fp-ts/es6/Predicate";
+import { Option, elem, isNone, none, some } from "fp-ts/es6/Option";
 
 
 function findSavePostElement(postElement: HTMLElement) {
@@ -147,22 +150,56 @@ function injectDownloadButtonsIntoMainFeedPost(postElement: HTMLElement) {
 }
 
 async function injectDownloadButtonsIntoSinglePagePost(postElement: HTMLElement) {
-	// single-page posts have a child node of tag `section` that contains the number of likes and the profile picture of some user that has liked the post.
-	// its previous sibling is the like & comment & save - bar.
 	
 	// immediately querying the element doesn't work. i suppose the page is not ready at that point. 
-	// thus i'm forced to lookup the element periodically until it is found. i've chosen an interval of 500 milliseconds and a maximum number of 10 attempts. 
+	// thus i'm forced to lookup the element periodically until it is found. i've chosen an interval of 200 milliseconds and a maximum number of 10 attempts. 
 
-	const sectionElement = await waitForElementExistence(200, 10, postElement, "section");
-	if (!sectionElement) {
-		console.warn(`trying to inject download buttons into post, but cannot find any child with tag 'Section' that was expected to be in the following element: `, postElement);
+	// there are two elements of tag 'polygon' on the page: the share and save buttons.
+	// we'll wait for any of such elements to show up:
+
+	const polygonElement = await waitForElementExistence(200, 10, postElement, "polygon");
+	if (!polygonElement) {
+		console.warn(`trying to inject download buttons into post, but cannot find any child with tag 'polygon' that was expected to be in the following element: `, postElement);
 		return;
 	}
 
-	const likeCommentShareBar = sectionElement;
+	const saveButtonPolygon = pipe(
+		Array.from(postElement.querySelectorAll("polygon")),
+		(array) => array[array.length - 1]
+	);
+
+	const saveButton = querySelectorAncestor("div[role=button]", saveButtonPolygon);
+	if (!saveButton){
+		console.warn(`attempted to find the ancestor-button of a polygon element, but without success. here is the element in question: `, saveButtonPolygon);
+		return;
+	}
+
+	// find the like & comment & share - bar in ancestors
+	const likeCommentShareBarOpt = findInAncestors(
+		(el) => el.childElementCount > 2,
+		saveButton
+	);
+
+	if (isNone(likeCommentShareBarOpt)){
+		console.warn(`found the save-button, but could not identify the like&comment&share bar in its ancestors, here is the button: `, saveButton);
+		return;
+	}
+	const likeCommentShareBar = likeCommentShareBarOpt.value;
+	
+	// likeCommentShareBar appears to be a grid with 3 elements.
+	// if we pushed another child, it will not fit inside that row.
+	// instead, we'll push the new element into the wrapper that holds the save button.
+	const saveButtonWrapper = likeCommentShareBar.lastChild as HTMLElement;
+
+	// adjust the wrappers style a bit to make it look less crooked.
+	// fingers crossed we won't break nothing.
+	Object.assign(
+		saveButtonWrapper.style,
+		{ display: "flex", alignItems: "baseline" }
+	);
 
 	const downloadButton = makeAndPrepareDownloadButton(postElement);
-	likeCommentShareBar.appendChild(downloadButton);
+	saveButtonWrapper.appendChild(downloadButton);
 
 	const buttonSize = likeCommentShareBar.querySelector("svg")?.width.baseVal.value;
 	if (buttonSize !== undefined){
@@ -183,4 +220,18 @@ export function injectDownloadButtonsIntoPost(postElement: HTMLElement){
 	else {
 		injectDownloadButtonsIntoSinglePagePost(postElement);
 	}
+}
+
+
+function findInAncestors(predicate: Predicate<HTMLElement>, element: HTMLElement): Option<HTMLElement> {
+	let curElement = element;
+	for (let i = 0; i < 1000; i++){
+		if (predicate(curElement)){
+			return some(curElement);
+		}
+		const nextElement = curElement.parentElement;
+		if (!nextElement) return none;
+		curElement = nextElement;
+	}
+	return none;
 }
