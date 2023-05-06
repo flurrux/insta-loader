@@ -1,5 +1,4 @@
 import { pipe } from "fp-ts/es6/function";
-import { VideoOrImageElement } from "../../media-types";
 
 
 function queryLargestImage(parent: HTMLElement){
@@ -11,7 +10,5 @@ function queryLargestImage(parent: HTMLElement){
 };
 
 export function queryMediaElement(parent: HTMLElement){
-	const videoOrImgWithSrcSet = parent.querySelector("video, img[srcset]") as (VideoOrImageElement | null);
-	if (videoOrImgWithSrcSet) return videoOrImgWithSrcSet;
-	return queryLargestImage(parent);
+	return parent.querySelector("video") ?? queryLargestImage(parent);
 };

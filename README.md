@@ -9,7 +9,8 @@ so before you use this extension, you have to be willing to wait for a fix when 
 
 ## previous breakage
 
-On April 27th 2023, i've noticed that download-buttons were missing on single-post pages again. this should be resolved by the latest release (1.3.13).
+On May 5th 2023, i've noticed that in certain cases, the images of a carousel on single post pages would not be download correctly. it would download a low-res image of another post instead.  
+this should now be fixed and is included in the latest release (1.3.14).
 
 
 ## current limitations are:  

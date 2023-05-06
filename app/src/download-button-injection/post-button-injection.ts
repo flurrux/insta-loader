@@ -13,6 +13,8 @@ import { makeLinkButton } from "../download-buttons/link-button";
 import { getCurrentPageType } from "../insta-navigation-observer";
 import { Predicate } from "fp-ts/es6/Predicate";
 import { Option, elem, isNone, none, some } from "fp-ts/es6/Option";
+import { findInAncestors } from "../../lib/find-dom-ancestor";
+import { Either, isLeft, left, right } from "fp-ts/es6/Either";
 
 
 function findSavePostElement(postElement: HTMLElement) {
@@ -65,6 +67,11 @@ function makeAndPrepareDownloadButton(postElement: HTMLElement){
 	bar.appendChild(downloadButton);
 	return bar;
 }
+
+
+
+
+// main-feed post -----------------------------
 
 function makeAndPrepareLinkButton(postElement: HTMLElement){
 	const linkButton = makeLinkButton(getHrefOfPost(postElement));
@@ -120,7 +127,8 @@ async function autoShowLinkForMainFeedVideos(
 	}
 	
 	const carouselElement = postElement.querySelector("ul");
-	if (!carouselElement) return null;
+	if (!carouselElement) return;
+
 	observeCarouselIndex(
 		carouselElement,
 		({ child }) => {
@@ -132,6 +140,7 @@ async function autoShowLinkForMainFeedVideos(
 		}
 	);
 }
+
 
 function injectDownloadButtonsIntoMainFeedPost(postElement: HTMLElement) {
 	const sectionEl = postElement.querySelector("section");
@@ -149,8 +158,16 @@ function injectDownloadButtonsIntoMainFeedPost(postElement: HTMLElement) {
 	autoShowLinkForMainFeedVideos(linkButton, downloadButton, postElement);
 }
 
-async function injectDownloadButtonsIntoSinglePagePost(postElement: HTMLElement) {
-	
+
+
+// single post page -------------
+
+type SinglePostPageInjectionPoint = {
+	likeCommentShareBar: HTMLElement,
+	saveButtonWrapper: HTMLElement
+}
+
+async function findSinglePagePostInjectionPoint(postElement: HTMLElement): Promise<Either<any, SinglePostPageInjectionPoint>> {
 	// immediately querying the element doesn't work. i suppose the page is not ready at that point. 
 	// thus i'm forced to lookup the element periodically until it is found. i've chosen an interval of 200 milliseconds and a maximum number of 10 attempts. 
 
@@ -159,8 +176,10 @@ async function injectDownloadButtonsIntoSinglePagePost(postElement: HTMLElement)
 
 	const polygonElement = await waitForElementExistence(200, 10, postElement, "polygon");
 	if (!polygonElement) {
-		console.warn(`trying to inject download buttons into post, but cannot find any child with tag 'polygon' that was expected to be in the following element: `, postElement);
-		return;
+		return left([
+			`trying to inject download buttons into post, but cannot find any child with tag 'polygon' that was expected to be in the following element: `,
+			postElement
+		])
 	}
 
 	const saveButtonPolygon = pipe(
@@ -169,9 +188,11 @@ async function injectDownloadButtonsIntoSinglePagePost(postElement: HTMLElement)
 	);
 
 	const saveButton = querySelectorAncestor("div[role=button]", saveButtonPolygon);
-	if (!saveButton){
-		console.warn(`attempted to find the ancestor-button of a polygon element, but without success. here is the element in question: `, saveButtonPolygon);
-		return;
+	if (!saveButton) {
+		return left([
+			`attempted to find the ancestor-button of a polygon element, but without success. here is the element in question: `,
+			saveButtonPolygon
+		])
 	}
 
 	// find the like & comment & share - bar in ancestors
@@ -180,12 +201,14 @@ async function injectDownloadButtonsIntoSinglePagePost(postElement: HTMLElement)
 		saveButton
 	);
 
-	if (isNone(likeCommentShareBarOpt)){
-		console.warn(`found the save-button, but could not identify the like&comment&share bar in its ancestors, here is the button: `, saveButton);
-		return;
+	if (isNone(likeCommentShareBarOpt)) {
+		return left([
+			`found the save-button, but could not identify the like&comment&share bar in its ancestors, here is the button: `,
+			saveButton
+		]);
 	}
 	const likeCommentShareBar = likeCommentShareBarOpt.value;
-	
+
 	// likeCommentShareBar appears to be a grid with 3 elements.
 	// if we pushed another child, it will not fit inside that row.
 	// instead, we'll push the new element into the wrapper that holds the save button.
@@ -197,6 +220,17 @@ async function injectDownloadButtonsIntoSinglePagePost(postElement: HTMLElement)
 		saveButtonWrapper.style,
 		{ display: "flex", alignItems: "baseline" }
 	);
+
+	return right({ likeCommentShareBar, saveButtonWrapper });
+}
+
+async function injectDownloadButtonsIntoSinglePagePost(postElement: HTMLElement) {
+	const saveButtonWrapperEith = await findSinglePagePostInjectionPoint(postElement);
+	if (isLeft(saveButtonWrapperEith)){
+		console.warn(saveButtonWrapperEith.left);
+		return;
+	}
+	const { saveButtonWrapper, likeCommentShareBar } = saveButtonWrapperEith.right;
 
 	const downloadButton = makeAndPrepareDownloadButton(postElement);
 	saveButtonWrapper.appendChild(downloadButton);
@@ -213,6 +247,10 @@ async function injectDownloadButtonsIntoSinglePagePost(postElement: HTMLElement)
 	}
 }
 
+// ----------------------------
+
+
+
 export function injectDownloadButtonsIntoPost(postElement: HTMLElement){
 	if ( getCurrentPageType() === "mainFeed" ){
 		injectDownloadButtonsIntoMainFeedPost(postElement);
@@ -220,18 +258,4 @@ export function injectDownloadButtonsIntoPost(postElement: HTMLElement){
 	else {
 		injectDownloadButtonsIntoSinglePagePost(postElement);
 	}
-}
-
-
-function findInAncestors(predicate: Predicate<HTMLElement>, element: HTMLElement): Option<HTMLElement> {
-	let curElement = element;
-	for (let i = 0; i < 1000; i++){
-		if (predicate(curElement)){
-			return some(curElement);
-		}
-		const nextElement = curElement.parentElement;
-		if (!nextElement) return none;
-		curElement = nextElement;
-	}
-	return none;
 }

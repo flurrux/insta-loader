@@ -10,7 +10,6 @@ export function tryGetImageSrc(postType: PostType, postElement: HTMLElement) {
 
 	const indexAndList = getCurrentCarouselIndexWithListAndChild(postElement);
 	if (!indexAndList) {
-		console.warn("could not find the current index of carousel");
 		return null;
 	}
 	const mediaElement = queryMediaElement(indexAndList.child);
