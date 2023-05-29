@@ -67,4 +67,4 @@ const makeFileNameExtractor = (fileExtensions: string[]) => {
 };
 
 // (url: string) => Either<string, string>
-export const createFileNameByUrl = makeFileNameExtractor([".mp4", ".jpg", ".webp", ".webm"]);
+export const createFileNameByUrl = makeFileNameExtractor([".mp4", ".jpg", ".webp", ".webm", ".heic"]);

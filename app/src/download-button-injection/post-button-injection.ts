@@ -182,32 +182,39 @@ async function findSinglePagePostInjectionPoint(postElement: HTMLElement): Promi
 		])
 	}
 
-	const saveButtonPolygon = pipe(
-		Array.from(postElement.querySelectorAll("polygon")),
-		(array) => array[array.length - 1]
+	const polygonElements = Array.from(postElement.querySelectorAll("polygon"));
+	if (polygonElements.length !== 2){
+		console.warn(`expected to find exactly two svg-polygon elements on this page, but got a different number, namely ${polygonElements.length}`);
+	}
+
+	if (polygonElements.length < 1){
+		return left("expected to find atleast one svg-polygon on this page that belonged to the share-button, but did not find any.");
+	}
+
+	// we'll assume that the first polygon element is a descendant of the share button
+
+	const firstPolygon = polygonElements[0];
+	const shareButtonOpt = findInAncestors(
+		(el) => el.matches("button"), firstPolygon
 	);
 
-	const saveButton = querySelectorAncestor("div[role=button]", saveButtonPolygon);
-	if (!saveButton) {
+	if (isNone(shareButtonOpt)){
 		return left([
-			`attempted to find the ancestor-button of a polygon element, but without success. here is the element in question: `,
-			saveButtonPolygon
+			`found an svg-polygon element that was assumed to belong to the share-button. then we tried to find the share-button itself, but got no matches. here is the polygon element:`,
+			firstPolygon
 		])
 	}
 
-	// find the like & comment & share - bar in ancestors
-	const likeCommentShareBarOpt = findInAncestors(
-		(el) => el.childElementCount > 2,
-		saveButton
-	);
-
-	if (isNone(likeCommentShareBarOpt)) {
+	const shareButton = shareButtonOpt.value;
+	const likeCommentShareParent = shareButton.parentElement;
+	if (!likeCommentShareParent){
 		return left([
-			`found the save-button, but could not identify the like&comment&share bar in its ancestors, here is the button: `,
-			saveButton
+			"found the share-button, but the DOM structure is not as expected and therefore can't find find the point where to inject the download button. here is the share-button:",
+			shareButton
 		]);
 	}
-	const likeCommentShareBar = likeCommentShareBarOpt.value;
+
+	const likeCommentShareBar = likeCommentShareParent.parentElement as HTMLElement;
 
 	// likeCommentShareBar appears to be a grid with 3 elements.
 	// if we pushed another child, it will not fit inside that row.
