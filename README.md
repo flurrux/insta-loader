@@ -9,7 +9,7 @@ so before you use this extension, you have to be willing to wait for a fix when 
 
 ## current breakage
 
-it seems that as of March 30th 2023 (most likely earlier), video downloads are broken again.  
+it seems that as of March 30th 2023 (most likely earlier), video downloads of carousel posts are broken again.  
 i will try to fix it as soon as i can, but this may take a while due to my increasingly unstable internet connection.
 
 
