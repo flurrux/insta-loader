@@ -27,7 +27,6 @@ function detectMediaID(details: WebRequest.OnSendHeadersDetailsType) {
 	if (!mediaIdMatch) return;
 
 	const mediaID = mediaIdMatch[0];
-	console.log("detected media ID!", mediaID);
 	tabs.sendMessage(
 		tabId, { mediaID }
 	);
@@ -56,6 +55,7 @@ webRequest.onSendHeaders.addListener(
 	(details) => {
 		const { requestHeaders } = details;
 		if (!requestHeaders) return;
+		console.log("graphql request headers", details);
 		tabs.sendMessage(
 			details.tabId, 
 			{ requestHeaders: objectifyRequestHeaders(requestHeaders) }
@@ -67,6 +67,7 @@ webRequest.onSendHeaders.addListener(
 
 webRequest.onBeforeRequest.addListener(
 	(details) => {
+		console.log("graphql request body", details);
 		tabs.sendMessage(
 			details.tabId,
 			{ requestBody: details.requestBody?.formData }
