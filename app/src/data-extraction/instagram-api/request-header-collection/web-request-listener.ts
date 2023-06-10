@@ -46,6 +46,8 @@ webRequest.onSendHeaders.addListener(
 
 // # graphql #
 
+const polarisPostRootQuery = "PolarisPostRootQuery";
+
 const graphqlUrls: string[] = [
 	// "*://www.instagram.com/graphql/query",
 	"*://www.instagram.com/api/graphql"
@@ -56,6 +58,13 @@ webRequest.onSendHeaders.addListener(
 		const { requestHeaders } = details;
 		if (!requestHeaders) return;
 		console.log("graphql request headers", details);
+
+		const X_FB_Friendly_Name_entry = requestHeaders.find(
+			({ name }) => name === "X-FB-Friendly-Name"
+		);
+		if (!X_FB_Friendly_Name_entry) return;
+		if (X_FB_Friendly_Name_entry.value !== polarisPostRootQuery) return;
+
 		tabs.sendMessage(
 			details.tabId, 
 			{ requestHeaders: objectifyRequestHeaders(requestHeaders) }
@@ -68,9 +77,16 @@ webRequest.onSendHeaders.addListener(
 webRequest.onBeforeRequest.addListener(
 	(details) => {
 		console.log("graphql request body", details);
+
+		const formData = details.requestBody?.formData;
+		if (!formData) return;
+
+		const { fb_api_req_friendly_name } = formData;
+		if (!fb_api_req_friendly_name) return;
+		if (fb_api_req_friendly_name[0] !== polarisPostRootQuery) return;
+
 		tabs.sendMessage(
-			details.tabId,
-			{ requestBody: details.requestBody?.formData }
+			details.tabId, { requestBody: formData }
 		);
 	},
 	{ urls: graphqlUrls },

@@ -9,12 +9,7 @@ so before you use this extension, you have to be willing to wait for a fix when 
 
 ## previous breakage
 
-on March 30th 2023, i've noticed that video downloads on carousel posts were broken again.  
-this was due to Instagram now making a specific API call several times when i've assumed it would only be made once.  
-the fix is available in the newest release (1.3.16).  
-
-please note that there may be another error with video downloads from single-post pages. if a download fails for you, try to reload the page and download again. i'll keep an eye out for this problem.
-
+on June 10th 2023, i've noticed that video downloads from posts were broken again. my previous fix was not as robust as i had hoped, but the latest fix should remedy this.
 
 
 ## current limitations are:  
