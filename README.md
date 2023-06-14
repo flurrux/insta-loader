@@ -7,9 +7,15 @@ this extension breaks occasionally (maybe once a month) due to Instagram updatin
 
 so before you use this extension, you have to be willing to wait for a fix when something breaks and then [manually re-install the extension](#install).
 
-## previous breakage
+## current breakage
 
-on June 10th 2023, i've noticed that video downloads from posts were broken again. my previous fix was not as robust as i had hoped, but the latest fix should remedy this.
+June 13th 2023
+
+Instagram introduced breaking changes yet again and it's currently not possible to download videos from posts (of course).  
+
+previously i've intercepted calls to `graphql` to obtain the video urls, but these have disappeared now.  
+but not all is lost. if i'm seeing this correctly, Instagram might have made it easier than ever to get the video url, by inserting all of its metadata into the DOM directly.  
+i am trying to fix this as soon as possible!
 
 
 ## current limitations are:  
