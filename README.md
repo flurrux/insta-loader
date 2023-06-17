@@ -7,16 +7,19 @@ this extension breaks occasionally (maybe once a month) due to Instagram updatin
 
 so before you use this extension, you have to be willing to wait for a fix when something breaks and then [manually re-install the extension](#install).
 
-## current breakage
+## previous breakage
 
 June 13th 2023
 
-Instagram introduced breaking changes yet again and it's currently not possible to download videos from posts (of course).  
+Instagram introduced breaking changes yet again and that broke, of course, video downloads.
 
 previously i've intercepted calls to `graphql` to obtain the video urls, but these have disappeared now.  
-but not all is lost. if i'm seeing this correctly, Instagram might have made it easier than ever to get the video url, by inserting all of its metadata into the DOM directly.  
-i am trying to fix this as soon as possible!
+i did spot a script element in the DOM that has all of the video urls and that's what i'm using now instead.  
+two potential problems with video quality and carousel index:  
+- i don't know if the video qualitites are the best possible
+- downloading videos from carousels may give you the wrong file! always make sure you have gotten the right one.
 
+download the latest release (1.3.18) for this fix.  
 
 ## current limitations are:  
 

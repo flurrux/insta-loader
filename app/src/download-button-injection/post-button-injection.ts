@@ -15,6 +15,7 @@ import { Predicate } from "fp-ts/es6/Predicate";
 import { Option, elem, isNone, none, some } from "fp-ts/es6/Option";
 import { findInAncestors } from "../../lib/find-dom-ancestor";
 import { Either, isLeft, left, right } from "fp-ts/es6/Either";
+import { makeSocialMediaPostingExtractor } from "../data-extraction/directly-in-browser/social-media-posting/media-provider";
 
 
 function findSavePostElement(postElement: HTMLElement) {
@@ -49,7 +50,7 @@ const applyPostDownloadElementStyle = (postElement: HTMLElement, element: HTMLEl
 
 function makeAndPrepareDownloadButton(postElement: HTMLElement){
 	const downloadButton = createDiskDownloadButton(
-		makeLazyMediaExtractor(postElement)
+		makeSocialMediaPostingExtractor(postElement)
 	);
 	applyPostDownloadElementStyle(postElement, downloadButton);
 
@@ -131,7 +132,7 @@ async function autoShowLinkForMainFeedVideos(
 
 	observeCarouselIndex(
 		carouselElement,
-		({ child }) => {
+		({ child, index }) => {
 			const mediaElement = queryMediaElement(child);
 			if (!mediaElement) return;
 			setDownloadButtonVisible(
