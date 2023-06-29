@@ -49,7 +49,7 @@ const createStoryPauseHandle = (): StoryPauseHandle => {
 };
 
 function findStoryPlayButton(){
-	const playButton = document.querySelector("header button") as HTMLElement;
+	const playButton = document.querySelector('header *[role="button"]') as HTMLElement;
 	if (!playButton) {
 		return left("could not add download-button in story. the svg for the pause/play button has not button as an ancestor");
 	}

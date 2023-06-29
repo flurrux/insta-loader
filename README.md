@@ -9,17 +9,10 @@ so before you use this extension, you have to be willing to wait for a fix when 
 
 ## previous breakage
 
-June 13th 2023
+June 29th 2023
 
-Instagram introduced breaking changes yet again and that broke, of course, video downloads.
-
-previously i've intercepted calls to `graphql` to obtain the video urls, but these have disappeared now.  
-i did spot a script element in the DOM that has all of the video urls and that's what i'm using now instead.  
-two potential problems with video quality and carousel index:  
-- i don't know if the video qualitites are the best possible
-- downloading videos from carousels may give you the wrong file! always make sure you have gotten the right one.
-
-download the latest release (1.3.18) for this fix.  
+small change in the DOM by Instagram that broke the download-button injection in stories.  
+should be fixed by the latest release 1.3.19
 
 ## current limitations are:  
 
