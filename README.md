@@ -7,12 +7,12 @@ this extension breaks occasionally (maybe once a month) due to Instagram updatin
 
 so before you use this extension, you have to be willing to wait for a fix when something breaks and then [manually re-install the extension](#install).
 
-## current breakage
+## previous breakage
 
 July 8th 2023
 
-the download buttons on the mainfeed still exists, but are not placed at the right location and also fails to download any images.  
-the fix may take a while since i don't have a lot of time right now.  
+Instagram changed their DOM which caused the download buttons in the main feed to be placed incorrectly and also broke the username lookup.  
+both should be working again with the latest release (1.3.20).  
 
 ## current limitations are:  
 
