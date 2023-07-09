@@ -16,22 +16,47 @@ import { Option, elem, isNone, none, some } from "fp-ts/es6/Option";
 import { findInAncestors } from "../../lib/find-dom-ancestor";
 import { Either, isLeft, left, right } from "fp-ts/es6/Either";
 import { makeSocialMediaPostingExtractor } from "../data-extraction/directly-in-browser/social-media-posting/media-provider";
+import { attemptRepeatedly } from "../../lib/attempt-repeatedly";
 
 
-function findSavePostElement(postElement: HTMLElement) {
-	const section = postElement.querySelector("section");
-	if (!section) {
-		console.warn("trying to find bar with like-button, save-button, etc. in order to inject the download-button, but cannot find it!");
-		return null;
+function findSavePostElement(postElement: HTMLElement): Option<HTMLElement> {
+	const saveButtonPolygon = postElement.querySelector('polygon[points="20 21 12 13.44 4 21 4 3 20 3 20 21"]');
+	if (!saveButtonPolygon){
+		// console.warn("trying to inject a download button, but could not find the save-button for the reference point.");
+		return none;
 	}
-	const svgs = Array.from(section.querySelectorAll("svg"));
-	if (svgs.length === 0) return null;
-	return svgs[svgs.length - 1];
+
+	const buttonElement1Opt = findInAncestors(
+		(element) => element.matches('*[role="button"]'),
+		saveButtonPolygon
+	);
+
+	if (isNone(buttonElement1Opt)){
+		// console.warn("trying to inject a download button, and found the svg of the save button that we use a reference point, but could not find the expected button element in its ancestors");
+		return none;
+	}
+
+	const buttonElement1 = buttonElement1Opt.value;
+	const buttonElement2 = buttonElement1.parentElement;
+
+	// this will not happen in all likelyhoold, but for the typechecker:
+	if (buttonElement2 == null){
+		return none;
+	}
+
+	if (!buttonElement2.matches('*[role="button"]')){
+		// console.log("trying to inject a download button, and found the save button, but its parent is not another button layer as expected.");
+		return none;
+	}
+
+	return some(buttonElement2);
 };
 
 const getPostDownloadElementStyle = (postElement: HTMLElement): Partial<CSSStyleDeclaration> | null => {
-	const saveToCollectionEl = findSavePostElement(postElement);
-	if (!saveToCollectionEl) return null;
+	const saveToCollectionElOpt = findSavePostElement(postElement);
+	if (isNone(saveToCollectionElOpt)) return null;
+	
+	const saveToCollectionEl = saveToCollectionElOpt.value;
 	const saveToCollectionButton = saveToCollectionEl.parentElement;
 	if (!saveToCollectionButton) return null;
 	const size = saveToCollectionEl.clientHeight + "px";
@@ -144,17 +169,24 @@ async function autoShowLinkForMainFeedVideos(
 
 
 function injectDownloadButtonsIntoMainFeedPost(postElement: HTMLElement) {
-	const sectionEl = postElement.querySelector("section");
-	if (!sectionEl) {
-		console.warn(`trying to inject download buttons into post, but cannot find any child with tag 'Section'`);
+	const saveButtonOpt = findSavePostElement(postElement);
+	if (isNone(saveButtonOpt)){
+		console.warn(`trying to inject download buttons into post, but cannot find the save-button for reference`);
 		return;
 	}
 
+	const saveButton = saveButtonOpt.value;
+	const container = saveButton.parentElement?.parentElement;
+	Object.assign(
+		container?.style,
+		{ display: "flex", alignItems: "center" }
+	);
+
 	const linkButton = makeAndPrepareLinkButton(postElement);
-	sectionEl.appendChild(linkButton);
+	container.appendChild(linkButton);
 
 	const downloadButton = makeAndPrepareDownloadButton(postElement);
-	sectionEl.appendChild(downloadButton);
+	container.appendChild(downloadButton);
 
 	autoShowLinkForMainFeedVideos(linkButton, downloadButton, postElement);
 }
@@ -169,6 +201,7 @@ type SinglePostPageInjectionPoint = {
 }
 
 async function findSinglePagePostInjectionPoint(postElement: HTMLElement): Promise<Either<any, SinglePostPageInjectionPoint>> {
+	
 	// immediately querying the element doesn't work. i suppose the page is not ready at that point. 
 	// thus i'm forced to lookup the element periodically until it is found. i've chosen an interval of 200 milliseconds and a maximum number of 10 attempts. 
 
