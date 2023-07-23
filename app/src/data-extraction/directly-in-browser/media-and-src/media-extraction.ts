@@ -1,3 +1,4 @@
+import { isLeft } from "fp-ts/es6/Either";
 import { getCarouselMediaByPostElement } from "../carousel/carousel-media";
 import { findTypeOfPost } from "../post-type";
 import { findUsernameInPost } from "../post-username";
@@ -16,11 +17,13 @@ export function getMediaSrcByPostElement(postElement: HTMLElement){
 
 
 export function getMediaSrcByHtml(postElement: HTMLElement){
-	const username = findUsernameInPost(postElement);
-	if (!username){
-		console.warn("could not username from post");
+	const usernameEith = findUsernameInPost(postElement);
+	if (isLeft(usernameEith)){
+		console.warn(usernameEith.left);
 		return null;
 	}
+	const username = usernameEith.right;
+	
 	const postType = findTypeOfPost(postElement);
 	if (!postType){
 		console.warn("could not find type of post");

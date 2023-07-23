@@ -1,16 +1,13 @@
 import { Either, isLeft, right } from "fp-ts/es6/Either";
 import { getCurrentCarouselIndexWithListAndChild } from "../directly-in-browser/carousel/carousel-index";
-import { getCarouselMediaByPostElement } from "../directly-in-browser/carousel/carousel-media";
-import { getMediaSrcByPostElement } from "../directly-in-browser/media-and-src/media-extraction";
-import { getHrefOfPost } from "../directly-in-browser/post-href";
-import { findTypeOfPost } from "../directly-in-browser/post-type";
-import { findUsernameInPost } from "../directly-in-browser/post-username";
+import { findMediaEntryByIndicatorDots } from "../directly-in-browser/carousel/indicator-dots";
 import { queryMediaAndGetSrc } from "../directly-in-browser/media-and-src/query-media-and-get-src";
 import { queryMediaElement } from "../directly-in-browser/media-and-src/query-media-element";
 import { getMediaSrc } from "../directly-in-browser/media-and-src/src-from-img-or-video";
-import { findMediaEntryByCarousel } from "./find-carousel-item";
+import { getHrefOfPost } from "../directly-in-browser/post-href";
+import { findTypeOfPost } from "../directly-in-browser/post-type";
+import { findUsernameInPost } from "../directly-in-browser/post-username";
 import { MediaInfo, PostType, SingleMediaInfo } from "./types";
-import { findMediaEntryByIndicatorDots } from "../directly-in-browser/carousel/indicator-dots";
 
 
 function tryGetImageSrc(postType: PostType, postElement: HTMLElement){
@@ -48,9 +45,13 @@ export const createMediaFetcherBySrcElementAndFetchFunc = (fetchFunc: FetchFunc)
 
 		const imageSrcData = tryGetImageSrc(currentPostType, postElement);
 		if (imageSrcData){
-			const username = findUsernameInPost(postElement);
+			const usernameEith = findUsernameInPost(postElement);
+			if (isLeft(usernameEith)){
+				console.warn(usernameEith);
+				return;
+			}
 			return {
-				username: username as string, 
+				username: usernameEith.right, 
 				...imageSrcData
 			}
 		}

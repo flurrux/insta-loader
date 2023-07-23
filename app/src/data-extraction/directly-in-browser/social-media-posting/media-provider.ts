@@ -8,6 +8,7 @@ import { getCurrentPageType, isSinglePostType } from "../../../insta-navigation-
 import { makeVideoIndexObserver } from "./carousel-video-index";
 import { SocialMediaPosting } from "./types";
 import { findSocialMediaPostingInDom } from "./find-in-dom";
+import { isLeft } from "fp-ts/es6/Either";
 
 // make a function that lazily extracts media from this post.
 // if it's an image, it will query the image source.
@@ -60,9 +61,14 @@ export function makeSocialMediaPostingExtractor(postElement: HTMLElement){
 		// then we can quickly find its source
 		const imageSrcData = tryGetImageSrc(postType, postElement);
 		if (imageSrcData) {
-			const username = findUsernameInPost(postElement);
+			const usernameEith = findUsernameInPost(postElement);
+			if (isLeft(usernameEith)){
+				console.warn(usernameEith.left);
+				return;
+			}
+
 			return {
-				username: username as string,
+				username: usernameEith.right,
 				...imageSrcData
 			}
 		}

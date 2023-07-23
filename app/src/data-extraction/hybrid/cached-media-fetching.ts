@@ -28,9 +28,14 @@ export const makeLazyMediaExtractor = (postElement: HTMLElement) => {
 		// if this current post or carousel item is an image, then we can quickly find its source
 		const imageSrcData = tryGetImageSrc(currentPostType, postElement);
 		if (imageSrcData) {
-			const username = findUsernameInPost(postElement);
+			const usernameEith = findUsernameInPost(postElement);
+			if (isLeft(usernameEith)) {
+				console.warn(usernameEith);
+				return;
+			}
+
 			return {
-				username: username as string,
+				username: usernameEith.right,
 				...imageSrcData
 			}
 		}
