@@ -50,7 +50,7 @@ type ImageVersions2 = {
 
 // data items ###
 
-type DataItem = CarouselItem | VideoItem | ImageItem;
+export type DataItem = CarouselItem | VideoItem | ImageItem;
 
 
 type DataItemBase = {

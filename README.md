@@ -9,10 +9,11 @@ so before you use this extension, you have to be willing to wait for a fix when 
 
 ## previous breakage
 
-July 8th 2023
+August 6th 2023
 
-Instagram changed their DOM which caused the download buttons in the main feed to be placed incorrectly and also broke the username lookup.  
-both should be working again with the latest release (1.3.20).  
+Video downloads were broken again due to a slightly broken username-lookup.  
+it should be working again with the latest release (1.3.22).
+
 
 ## current limitations are:  
 

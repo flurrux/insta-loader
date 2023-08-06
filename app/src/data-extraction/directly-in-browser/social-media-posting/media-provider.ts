@@ -1,14 +1,14 @@
-import { Option, fromNullable, isNone, none } from "fp-ts/es6/Option";
-import { PostType } from "../../from-fetch-response/types";
-import { SingleMediaInfo } from "../../media-types";
-import { findTypeOfPost } from "../post-type";
-import { tryGetImageSrc } from "../../hybrid/try-get-image-src";
-import { findUsernameInPost } from "../post-username";
+import { isLeft, left, right } from "fp-ts/es6/Either";
+import { Option, isNone, none } from "fp-ts/es6/Option";
 import { getCurrentPageType, isSinglePostType } from "../../../insta-navigation-observer";
+import { MediaFetchFn } from "../../../media-fetch-fn";
+import { PostType } from "../../from-fetch-response/types";
+import { findTypeOfPost } from "../general-post-info/post-type";
+import { findUsernameInPost } from "../general-post-info/post-username";
+import { tryGetImageSrc } from "../try-get-image-src";
 import { makeVideoIndexObserver } from "./carousel-video-index";
-import { SocialMediaPosting } from "./types";
 import { findSocialMediaPostingInDom } from "./find-in-dom";
-import { isLeft } from "fp-ts/es6/Either";
+import { SocialMediaPosting } from "./types";
 
 // make a function that lazily extracts media from this post.
 // if it's an image, it will query the image source.
@@ -25,8 +25,8 @@ import { isLeft } from "fp-ts/es6/Either";
 // i should definitely rewrite this function and split it
 // into multiple cases (image, single video, carousel, ...).
 
-export function makeSocialMediaPostingExtractor(postElement: HTMLElement){
-	
+export function makeSocialMediaPostingExtractor(postElement: HTMLElement): MediaFetchFn {
+
 	// videoIndex is not needed if this is an image,
 	// but since everything is done lazily, we need
 	// to keep track of the video index if it's a carousel,
@@ -37,18 +37,19 @@ export function makeSocialMediaPostingExtractor(postElement: HTMLElement){
 	let socialMediaPosting: Option<SocialMediaPosting> = none;
 	let currentPostType: Option<PostType> = none;
 
-	return async (): Promise<SingleMediaInfo | undefined> => {
+	return async () => {
 
 		// <post type> ------------------------
 
 		if (isNone(currentPostType)) {
-			currentPostType = fromNullable(findTypeOfPost(postElement));
+			currentPostType = findTypeOfPost(postElement);
 		}
 
 		// check again if postType is some
 		if (isNone(currentPostType)) {
-			console.error("could not find type of post", postElement);
-			return;
+			return left([
+				"could not find type of post", postElement
+			])
 		}
 
 		const postType = currentPostType.value;
@@ -62,54 +63,48 @@ export function makeSocialMediaPostingExtractor(postElement: HTMLElement){
 		const imageSrcData = tryGetImageSrc(postType, postElement);
 		if (imageSrcData) {
 			const usernameEith = findUsernameInPost(postElement);
-			if (isLeft(usernameEith)){
-				console.warn(usernameEith.left);
-				return;
+			if (isLeft(usernameEith)) {
+				return usernameEith;
 			}
 
-			return {
+			return right({
 				username: usernameEith.right,
 				...imageSrcData
-			}
+			})
 		}
 
 		// case: single video or carousel video on mainfeed
 		if (!isSinglePostType(getCurrentPageType())) {
-			console.warn("please open the page of this post in a new tab. downloading videos directly from the mainfeed is currently not supported.");
-			return;
+			return left(
+				"please open the page of this post in a new tab. downloading videos directly from the mainfeed is currently not supported."
+			)
 		}
 
 
 		// case: single- or carousel-video on post-page
-		
-		// <social media posting> -----------------
 
 		if (isNone(socialMediaPosting)) {
 			socialMediaPosting = findSocialMediaPostingInDom();
 		}
 
 		if (isNone(socialMediaPosting)) {
-			console.error("could not find social media posting in DOM");
-			return;
+			return left("couldn't find any social-media posting in the DOM");
 		}
 
 		const mediaPost = socialMediaPosting.value;
 		const videoItems = mediaPost.video;
-		const username = mediaPost.author.identifier.value;
-
-		// </social media posting> -----------------
-
+		const { author } = mediaPost;
+		const username = author.identifier?.value ?? author.alternateName;
 
 		const videoIndex = getVideoIndex();
-		if (videoIndex < 0 || videoIndex >= videoItems.length){
-			console.warn("video index is out of bounds. somethings wrong!");
-			return;
+		if (videoIndex < 0 || videoIndex >= videoItems.length) {
+			return left("video index is out of bounds. i'm as surprised as you are.");
 		}
 
-		return {
+		return right({
 			type: "video",
 			username,
 			src: videoItems[videoIndex].contentUrl
-		};
+		});
 	}
 };

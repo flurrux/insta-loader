@@ -1,13 +1,14 @@
 import { isLeft, right } from "fp-ts/es6/Either";
 import { getCurrentPageType, isSinglePostType } from "../../insta-navigation-observer";
-import { getHrefOfPost } from "../directly-in-browser/post-href";
-import { findTypeOfPost } from "../directly-in-browser/post-type";
-import { findUsernameInPost } from "../directly-in-browser/post-username";
+import { getHrefOfPost } from "../directly-in-browser/general-post-info/post-href";
+import { findTypeOfPost } from "../directly-in-browser/general-post-info/post-type";
+import { findUsernameInPost } from "../directly-in-browser/general-post-info/post-username";
 import { findMediaEntryByIndicatorDots } from "../directly-in-browser/carousel/indicator-dots";
 import { MediaInfo, PostType } from "../from-fetch-response/types";
 import { SingleMediaInfo } from "../media-types";
 import { fetchMediaOnCurrentPageAndExtract } from "./media-of-post";
-import { tryGetImageSrc } from "./try-get-image-src";
+import { tryGetImageSrc } from "../directly-in-browser/try-get-image-src";
+import { toNullable } from "fp-ts/es6/Option";
 
 export const makeLazyMediaExtractor = (postElement: HTMLElement) => {
 
@@ -18,7 +19,7 @@ export const makeLazyMediaExtractor = (postElement: HTMLElement) => {
 
 	return async (): Promise<SingleMediaInfo | undefined> => {
 		if (!currentPostType) {
-			currentPostType = findTypeOfPost(postElement);
+			currentPostType = toNullable(findTypeOfPost(postElement));
 			if (!currentPostType) {
 				console.error("could not find type of post", postElement);
 				return;

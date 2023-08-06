@@ -126,12 +126,12 @@ function isStoryCacheStale(cachedData: StoryData): boolean {
 export function makeStoryFetcher() {
 	let cachedStoryData: Option<StoryData> = none;
 
-	return async () => {
+	return async (): Promise<Either<any, MediaWriteInfo>> => {
 
 		if (isNone(cachedStoryData) || isStoryCacheStale(cachedStoryData.value)) {
 			console.log("refreshing story cache");
 			const storyDataEith = await fetchCurrentStoryData();
-			if (isLeft(storyDataEith)) throw storyDataEith.left;
+			if (isLeft(storyDataEith)) return storyDataEith;
 			cachedStoryData = some(storyDataEith.right);
 		}
 
@@ -142,11 +142,9 @@ export function makeStoryFetcher() {
 
 		const mediaInfo = getMediaInfoFromSingleItem(storyItem);
 		const { username } = storyData.user;
-		const writeInfo: MediaWriteInfo = {
+		return right({
 			src: mediaInfo.src,
 			username
-		};
-
-		return writeInfo;
+		});
 	}
 }

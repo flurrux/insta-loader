@@ -4,10 +4,11 @@ import { findMediaEntryByIndicatorDots } from "../directly-in-browser/carousel/i
 import { queryMediaAndGetSrc } from "../directly-in-browser/media-and-src/query-media-and-get-src";
 import { queryMediaElement } from "../directly-in-browser/media-and-src/query-media-element";
 import { getMediaSrc } from "../directly-in-browser/media-and-src/src-from-img-or-video";
-import { getHrefOfPost } from "../directly-in-browser/post-href";
-import { findTypeOfPost } from "../directly-in-browser/post-type";
-import { findUsernameInPost } from "../directly-in-browser/post-username";
+import { getHrefOfPost } from "../directly-in-browser/general-post-info/post-href";
+import { findTypeOfPost } from "../directly-in-browser/general-post-info/post-type";
+import { findUsernameInPost } from "../directly-in-browser/general-post-info/post-username";
 import { MediaInfo, PostType, SingleMediaInfo } from "./types";
+import { toNullable } from "fp-ts/es6/Option";
 
 
 function tryGetImageSrc(postType: PostType, postElement: HTMLElement){
@@ -36,7 +37,7 @@ export const createMediaFetcherBySrcElementAndFetchFunc = (fetchFunc: FetchFunc)
 	
 	return async (): Promise<SingleMediaInfo | undefined> => {
 		if (!currentPostType) {
-			currentPostType = findTypeOfPost(postElement);
+			currentPostType = toNullable(findTypeOfPost(postElement));
 			if (!currentPostType){
 				console.warn("could not find type of post");
 				return;

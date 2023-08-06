@@ -1,6 +1,6 @@
 import { isRight, left } from "fp-ts/es6/Either";
 import { findMediaIdOnPostPage } from "../directly-in-browser/media-id";
-import { getHrefOfPost } from "../directly-in-browser/post-href";
+import { getHrefOfPost } from "../directly-in-browser/general-post-info/post-href";
 import { fetchMediaID } from "../from-fetch-response/media-id";
 
 // this method doesn't work anymore!

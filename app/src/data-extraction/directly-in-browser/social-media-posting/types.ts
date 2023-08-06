@@ -20,7 +20,7 @@ type Person = {
 	identifier: {
 		propertyID: "Username",
 		value: string // i suppose use this for foldernames
-	},
+	} | null,
 
 	image: string, // profile pic maybe
 

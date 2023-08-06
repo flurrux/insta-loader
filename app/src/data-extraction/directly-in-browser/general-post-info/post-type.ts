@@ -1,4 +1,5 @@
-import { queryMediaElement } from "./media-and-src/query-media-element";
+import { Option, none, some } from "fp-ts/es6/Option";
+import { queryMediaElement } from "../media-and-src/query-media-element";
 
 type PostType = "collection" | "video" | "image";
 
@@ -14,13 +15,19 @@ function postIsCarousel(postElement: HTMLElement, mediaElement: HTMLElement): bo
 	return false;
 }
 
-export function findTypeOfPost(postElement: HTMLElement): PostType | null {
+export function findTypeOfPost(postElement: HTMLElement): Option<PostType> {
 	const mediaElement = queryMediaElement(postElement);
 	if (!mediaElement) {
 		// console.warn("no media-element found");
 		// console.log(postElement);
-		return null;
+		return none;
 	}
-	if (postIsCarousel(postElement, mediaElement)) return "collection";
-	return mediaElement.tagName === "VIDEO" ? "video" : "image";
+
+	if (postIsCarousel(postElement, mediaElement)){
+		return some("collection");
+	}
+
+	return some(
+		mediaElement.tagName === "VIDEO" ? "video" : "image"
+	);
 };

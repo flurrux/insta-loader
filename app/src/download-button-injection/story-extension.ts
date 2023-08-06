@@ -1,37 +1,24 @@
 import { isLeft, left, right } from "fp-ts/es6/Either";
-import { createElementByHTML, querySelectorAncestor } from "../../lib/html-util";
-import { createDiskDownloadButton, DiskDownloadButtonOptions } from "../download-buttons/disk-download-button";
+import { createElementByHTML } from "../../lib/html-util";
+import { createDiskDownloadButton } from "../download-buttons/disk-download-button";
 import { downloadKey, requestDownloadByButton } from "../download-shortcut";
 import { makeStoryFetcher } from "./cached-story-fetching";
 
-const findCloseStoryElement = (storyEl: HTMLElement): HTMLElement => {
-	return storyEl.querySelector(".coreSpriteCloseLight").children[0] as HTMLElement;
-};
 
-const getStoryDownloadElementStyle = (storyEl: HTMLElement): Partial<CSSStyleDeclaration> => {
-	const closeSprite = findCloseStoryElement(storyEl);
-	const size = closeSprite.clientHeight + "px";
-	const blueprintEl = closeSprite.parentElement.parentElement;
-	const margin = getComputedStyle(blueprintEl).getPropertyValue("margin");
-	return {
-		width: size,
-		height: size,
-		margin
-	};
-};
+// # story pausing (to prevent the story from finishing before the download started)
 
 interface StoryPauseHandle {
 	keepPaused: () => void,
 	continue: () => void
 };
 
-const createStoryPauseHandle = (): StoryPauseHandle => {
+function createStoryPauseHandle(): StoryPauseHandle {
 	let _storyPaused = false;
 	const video = document.querySelector("video");
 	const keepStoryPaused = () => {
 		_storyPaused = true;
 		const loop = () => {
-			if (!video.paused) {
+			if (video && !video.paused) {
 				video.pause();
 			}
 			if (!_storyPaused) return;
@@ -48,6 +35,8 @@ const createStoryPauseHandle = (): StoryPauseHandle => {
 	}
 };
 
+
+
 function findStoryPlayButton(){
 	const playButton = document.querySelector('header *[role="button"]') as HTMLElement;
 	if (!playButton) {
@@ -61,7 +50,7 @@ export const injectDownloadButtonsIntoStory = (storyEl: HTMLElement) => {
 		<div style="margin-right: 8px;"></div>
 	`);
 
-	const pauseHandleDownloadOptions = ((): DiskDownloadButtonOptions => {
+	const pauseHandleDownloadOptions = (function(){
 		let pauseHandle: StoryPauseHandle | null = null;
 		return {
 			onDownloadStart: () => {
@@ -70,17 +59,17 @@ export const injectDownloadButtonsIntoStory = (storyEl: HTMLElement) => {
 					pauseHandle.keepPaused();
 				}
 			},
-			onDownloadEnd: () => {
+			onDownloadEnd: (successful: boolean) => {
 				if (!pauseHandle) return;
 				pauseHandle.continue();
 			}
 		};
 	})();
 
-	const diskDownloadButton = createDiskDownloadButton(
-		makeStoryFetcher(),
-		pauseHandleDownloadOptions
-	);
+	const diskDownloadButton = createDiskDownloadButton({
+		fetchMediaInfo: makeStoryFetcher(),
+		...pauseHandleDownloadOptions
+	});
 
 	const targetSize = 24;
 	// make the button a little smaller to better fit in with its siblings:
