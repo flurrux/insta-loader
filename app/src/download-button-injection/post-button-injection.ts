@@ -1,22 +1,17 @@
-import { pipe } from "fp-ts/es6/function";
+import { Either, isLeft, left, right } from "fp-ts/es6/Either";
+import { Option, isNone, isSome, none, some } from "fp-ts/es6/Option";
 import { waitForElementExistence } from "../../lib/await-element";
-import { createElementByHTML, querySelectorAncestor } from "../../lib/html-util";
+import { findInAncestors } from "../../lib/find-dom-ancestor";
+import { createElementByHTML } from "../../lib/html-util";
 import { tryMultiAndDelayed } from "../../lib/multi-try-delayed";
 import { observeCarouselIndex } from "../carousel-index-observer";
-import { getCurrentCarouselElement } from "../data-extraction/directly-in-browser/carousel/carousel-item";
-import { queryMediaElement } from "../data-extraction/directly-in-browser/media-and-src/query-media-element";
 import { getHrefOfPost } from "../data-extraction/directly-in-browser/general-post-info/post-href";
 import { findTypeOfPost } from "../data-extraction/directly-in-browser/general-post-info/post-type";
-import { makeLazyMediaExtractor } from "../data-extraction/hybrid/cached-media-fetching";
-import { createDiskDownloadButton, MediaWriteInfo } from "../download-buttons/disk-download-button";
+import { queryMediaElement } from "../data-extraction/directly-in-browser/media-and-src/query-media-element";
+import { makeWebInfoMediaExtractor } from "../data-extraction/hybrid/cached-media-fetching";
+import { createDiskDownloadButton } from "../download-buttons/disk-download-button";
 import { makeLinkButton } from "../download-buttons/link-button";
 import { getCurrentPageType } from "../insta-navigation-observer";
-import { Predicate } from "fp-ts/es6/Predicate";
-import { Option, elem, isNone, isSome, none, some } from "fp-ts/es6/Option";
-import { findInAncestors } from "../../lib/find-dom-ancestor";
-import { Either, isLeft, left, right } from "fp-ts/es6/Either";
-import { makeSocialMediaPostingExtractor } from "../data-extraction/directly-in-browser/social-media-posting/media-provider";
-import { attemptRepeatedly } from "../../lib/attempt-repeatedly";
 
 
 function findSavePostElement(postElement: HTMLElement): Option<HTMLElement> {
@@ -75,7 +70,7 @@ const applyPostDownloadElementStyle = (postElement: HTMLElement, element: HTMLEl
 
 function makeAndPrepareDownloadButton(postElement: HTMLElement){
 	const downloadButton = createDiskDownloadButton({
-		fetchMediaInfo: makeSocialMediaPostingExtractor(postElement)
+		fetchMediaInfo: makeWebInfoMediaExtractor(postElement)
 	});
 	
 	applyPostDownloadElementStyle(postElement, downloadButton);

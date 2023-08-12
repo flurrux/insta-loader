@@ -1,11 +1,12 @@
 import { sort } from 'fp-ts/es6/Array';
-import { isLeft } from 'fp-ts/es6/Either';
+import { isLeft, left, right } from 'fp-ts/es6/Either';
 import { flow } from 'fp-ts/es6/function';
 import { Ord } from 'fp-ts/es6/number';
 import { isSome, none, Option, some } from 'fp-ts/es6/Option';
 import { contramap, reverse } from 'fp-ts/es6/Ord';
 import { parseDashManifestAndExtractData } from './video-dash-manifest';
-import { CarouselItem, MediaInfo, PostType, VersionItem, VideoOrImgInfo, VideoOrImgItem } from './types';
+import { CarouselItem, MediaInfo, PostType, VersionItem, VideoInfo, VideoOrImgInfo, VideoOrImgItem } from './types';
+import { DataItem } from './response-data-type';
 
 
 const getImageArea = (item: VersionItem) => item.width * item.height;
@@ -74,6 +75,40 @@ export function getMediaInfoFromSingleItem(item: VideoOrImgItem): VideoOrImgInfo
 
 function getMediaInfoFromCarousel(carousel: CarouselItem): VideoOrImgInfo[] {
 	return carousel["carousel_media"].map(getMediaInfoFromSingleItem)
+}
+
+
+export function getMediaInfoFromDataItem(item: DataItem): Either<unknown, MediaInfo> {
+	const username: string = item.user.username;
+
+	let mediaArray: VideoOrImgInfo[] = [];
+
+	let postType: PostType = "video";
+
+	if (item["carousel_media"]) {
+		postType = "collection";
+		mediaArray = getMediaInfoFromCarousel(item);
+	}
+	else if (item["video_versions"]) {
+		postType = "video";
+		mediaArray.push(
+			getMediaInfoFromSingleItem(item)
+		);
+	}
+	else {
+		postType = "image";
+		mediaArray.push(
+			getMediaInfoFromSingleItem(item)
+		);
+	}
+
+	if (mediaArray.length === 0) {
+		return left('no media found');
+	}
+
+	return right({
+		postType, mediaArray, username
+	});
 }
 
 export function getMediaInfoFromResponseObject(responseObject: object): MediaInfo {
