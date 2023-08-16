@@ -9,10 +9,13 @@ so before you use this extension, you have to be willing to wait for a fix when 
 
 ## previous breakage
 
-August 6th 2023
+August 16th 2023
 
-Video downloads were broken again due to a slightly broken username-lookup.  
-it should be working again with the latest release (1.3.22).
+looks like Instagram removed the social-media posting information from the DOM which broke video downloads again.  
+but it looks like the shortcode-webinfo is now always injected into the DOM (this used to be fetched dynamically some while ago).  
+i've tested it for a week now and it seems to be reliable.
+let's see how long this lasts.  
+latest release with these changes is 1.3.23
 
 
 ## current limitations are:  
