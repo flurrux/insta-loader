@@ -37,15 +37,23 @@ function createStoryPauseHandle(): StoryPauseHandle {
 
 
 
-function findStoryPlayButton(){
-	const playButton = document.querySelector('header *[role="button"]') as HTMLElement;
+function findStoryPlayButton(parent: HTMLElement){
+	// here we're relying on the language being set to english.
+	// aria-label depends on language!
+	const playButton = (
+		parent.querySelector('*[aria-label=Play]') ??
+		parent.querySelector('*[aria-label=Pause]')
+	);
+
 	if (!playButton) {
-		return left("could not add download-button in story. the svg for the pause/play button has not button as an ancestor");
+		return left("could not add download-button in story. the svg for the pause/play button has no button as an ancestor");
 	}
-	return right(playButton);
+
+	return right(playButton.parentElement);
 }
 
 export const injectDownloadButtonsIntoStory = (storyEl: HTMLElement) => {
+
 	const container = createElementByHTML(`
 		<div style="margin-right: 8px;"></div>
 	`);
@@ -81,7 +89,7 @@ export const injectDownloadButtonsIntoStory = (storyEl: HTMLElement) => {
 	// Object.assign(diskDownloadButton.style, getStoryDownloadElementStyle(storyEl));
 	container.appendChild(diskDownloadButton);
 	
-	const playButtonEither = findStoryPlayButton();
+	const playButtonEither = findStoryPlayButton(storyEl);
 	if (isLeft(playButtonEither)){
 		console.warn(playButtonEither.left);
 		return;

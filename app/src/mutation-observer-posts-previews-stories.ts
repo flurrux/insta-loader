@@ -1,7 +1,9 @@
 
-import { flow } from 'fp-ts/es6/function';
+import { flow, pipe } from 'fp-ts/es6/function';
 import { getElementTypesOnCurrentPage, InstaElementType } from './data-extraction/is-currently-post-story-or-preview';
 import { getCurrentPageType } from './insta-navigation-observer';
+import { findInAncestors } from '../lib/find-dom-ancestor';
+import { isSome } from 'fp-ts/es6/Option';
 
 
 /**
@@ -59,14 +61,40 @@ function queryPostElements(element: HTMLElement): HTMLElement[] {
 }
 
 function queryStoryElements(root: HTMLElement): HTMLElement[] {
+
 	// the story element is a <section> with classes _s7gs2  _d9zua (11.04.2018)
 	// it has a header, and an explicit width
-	if (root.tagName == "SECTION" && Array.from(root.children).findIndex(el => el.tagName == "HEADER") > 0) {
+	if (
+		root.matches("section") &&
+		Array.from(root.children).findIndex(el => el.tagName == "HEADER") > 0
+	){
+	// stories on the mainfeed seem to have a header element with
+	// the authors name, the play button, the mute button, etc.
 		return [root];
+		
 	}
 
-	return getParentElements(
-		Array.from(root.querySelectorAll("header"))
+	// otherwise, the header element is a div.
+	// we can check if it contains an element with aria-label=Menu,
+	// which is a button with 3 horizontal dots.
+	// checking for aria-label requires the language to
+	// be fixed!
+	// for example in german, the aria-label may be different
+	// than in english.
+	if (root.querySelector("*[aria-label=Menu]")){
+		const result = findInAncestors(
+			(el) => el.matches("section"),
+			root
+		);
+		if (isSome(result)){
+			return [result.value];
+		}
+	}
+
+	return pipe(
+		root.querySelectorAll("header"),
+		Array.from,
+		getParentElements,
 	);
 }
 

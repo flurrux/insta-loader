@@ -7,18 +7,28 @@ this extension breaks occasionally (maybe once a month) due to Instagram updatin
 
 so before you use this extension, you have to be willing to wait for a fix when something breaks and then [manually re-install the extension](#install).
 
-## previous breakage
 
-August 16th 2023
 
-looks like Instagram removed the social-media posting information from the DOM which broke video downloads again.  
-but it looks like the shortcode-webinfo is now always injected into the DOM (this used to be fetched dynamically some while ago).  
-i've tested it for a week now and it seems to be reliable.
-let's see how long this lasts.  
-latest release with these changes is 1.3.23
+## latest update
+
+December 24th 2023
+
+this extension has seen a couple of minor breakages since the last update, but i had no time to work on it, sorry about that.  
+
+i've noticed for a while that if you navigate to a users page and then click on their stories, there were no download buttons.  
+today i've investigated this issue and found that Instagram has changed the DOM and this broke a couple of queryselectors.  
+the latest release should fix that, but as always, no promises.
+
+in my fix, i have switched to querying for aria-labels as they seem to be quite stable.  
+however, aria-labels are different from language to language and so with this update, i'm making the requirement that users set their language to english.  
+hope this is not much of an inconvenience for you.
 
 
 ## current limitations are:  
+
+- only english browser settings are supported. for other languages, this extension may not work correctly, i.e. downloads can fail or the download button may not show up.
+  this is due to the fact that i'm often using aria-label selectors and assuming the aria-labels to be english.  
+  moreover, check that the urls of your instagram page doesn't contain language parameters such as `?hl=de` (de is for german). if it does, you can remove that part and reload the page.
 
 - audio is missing from downloaded videos. the reason is that video- and audio parts on instagram are stored in separate files on their servers. when you press download, only the video-part is downloaded. merging the parts into one mp4-file is possible, but the code required will bloat this extension immensely (~20 megabytes). an alternative is to simply download both video and audio together. will have to think more about this.
 
@@ -73,6 +83,9 @@ so for example if you download an image from [instagram.com/beeple_crap](https:/
 - now when you visit [https://instagram.com/](instagram.com), you should see downlad buttons on every post like so:  
 
 ![](./demo/download-button-on-main-feed.jpg)
+
+- lastly, make sure that your browser language is set to english or otherwise, the extension might not work correctly.
+
 
 # uninstall
 
