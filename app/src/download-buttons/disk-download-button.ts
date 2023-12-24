@@ -72,7 +72,6 @@ function dispatchDownloadErrorMessage(message: string){
 async function tryFetchAndDownloadMediaWithErrorFeedback(args: FetchAndDownloadArgs): Promise<boolean> {
 	const { fetchMediaInfo: getMediaInfo, loadingCallback } = args;
 
-	debugger;
 	const mediaInfoEith = await getMediaInfo();
 	if (isLeft(mediaInfoEith)){
 		console.error(mediaInfoEith.left);
