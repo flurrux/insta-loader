@@ -44,6 +44,8 @@ const queryPreviewElements = flow(
 );
 
 function queryPostElements(element: HTMLElement): HTMLElement[] {
+	// console.log("queryPostElements", "pagetype", getCurrentPageType(), element);
+
 	// article elements seem to only appear on the main feed. 
 	if ( getCurrentPageType() === "mainFeed" ){
 		if (element.tagName == "ARTICLE")  return [ element ];

@@ -15,7 +15,7 @@
   "content_scripts": [
     {
       "js": [
-        "assets/content-script-loader.index.ts.edbcf095.15833790.js"
+        "assets/content-script-loader.index.ts.89e6d249.7c7abe85.js"
       ],
       "run_at": "document_start",
       "matches": [
@@ -54,7 +54,7 @@
       ],
       "resources": [
         "assets/vendor.03513969.js",
-        "assets/index.ts.edbcf095.js"
+        "assets/index.ts.89e6d249.js"
       ],
       "use_dynamic_url": true
     }

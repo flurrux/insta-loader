@@ -11,17 +11,11 @@ so before you use this extension, you have to be willing to wait for a fix when 
 
 ## latest update
 
-December 24th 2023
+December 25th 2023
 
-this extension has seen a couple of minor breakages since the last update, but i had no time to work on it, sorry about that.  
-
-i've noticed for a while that if you navigate to a users page and then click on their stories, there were no download buttons.  
-today i've investigated this issue and found that Instagram has changed the DOM and this broke a couple of queryselectors.  
-the latest release should fix that, but as always, no promises.
-
-in my fix, i have switched to querying for aria-labels as they seem to be quite stable.  
-however, aria-labels are different from language to language and so with this update, i'm making the requirement that users set their language to english.  
-hope this is not much of an inconvenience for you.
+i've published a release yesterday (v1.3.24) that was supposed to fix missing download buttons in stories, but it broke all the other download buttons.  
+sorry about that!  
+the v1.3.24 release has been removed and i will try to test my releases more thoroughly in the future.
 
 
 ## current limitations are:  
