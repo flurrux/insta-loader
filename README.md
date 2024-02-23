@@ -11,11 +11,10 @@ so before you use this extension, you have to be willing to wait for a fix when 
 
 ## latest update
 
-December 25th 2023
+February 23rd 2024
 
-i've published a release yesterday (v1.3.24) that was supposed to fix missing download buttons in stories, but it broke all the other download buttons.  
-sorry about that!  
-the v1.3.24 release has been removed and i will try to test my releases more thoroughly in the future.
+this release should fix missing download buttons in stories other than the main feed.  
+
 
 
 ## current limitations are:  

@@ -62,8 +62,16 @@ function queryPostElements(element: HTMLElement): HTMLElement[] {
 	return [];
 }
 
+// TODO: if you paste a link to a story in your url bar and press enter,
+// it will ask you if you want to view the story with your current account.
+// the question appears in the same place as the story and all of the
+// controls, including the play button, are missing.
+// if you press 'confirm', the story loads, but the download button does not.
+// the problem is with the question overlay. it is not recognized as a
+// story element by this function and even if it was, it wouldn't be able
+// to find the download button.
 function queryStoryElements(root: HTMLElement): HTMLElement[] {
-
+	console.log("queryStoryElements", root);
 	// the story element is a <section> with classes _s7gs2  _d9zua (11.04.2018)
 	// it has a header, and an explicit width
 	if (
@@ -73,14 +81,12 @@ function queryStoryElements(root: HTMLElement): HTMLElement[] {
 	// stories on the mainfeed seem to have a header element with
 	// the authors name, the play button, the mute button, etc.
 		return [root];
-		
 	}
 
 	// otherwise, the header element is a div.
 	// we can check if it contains an element with aria-label=Menu,
 	// which is a button with 3 horizontal dots.
-	// checking for aria-label requires the language to
-	// be fixed!
+	// checking for aria-label requires the language to be fixed!
 	// for example in german, the aria-label may be different
 	// than in english.
 	if (root.querySelector("*[aria-label=Menu]")){
