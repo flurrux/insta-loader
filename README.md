@@ -23,6 +23,8 @@ this release should fix missing download buttons in stories other than the main 
   this is due to the fact that i'm often using aria-label selectors and assuming the aria-labels to be english.  
   moreover, check that the urls of your instagram page doesn't contain language parameters such as `?hl=de` (de is for german). if it does, you can remove that part and reload the page.
 
+- when you open a story, you won't be able to download the very first video/image right away. you will have to do at least one navigation (either click the 'next story' or 'previous story' button).  
+
 - audio is missing from downloaded videos. the reason is that video- and audio parts on instagram are stored in separate files on their servers. when you press download, only the video-part is downloaded. merging the parts into one mp4-file is possible, but the code required will bloat this extension immensely (~20 megabytes). an alternative is to simply download both video and audio together. will have to think more about this.
 
 - video downloads sometimes fail due to a [limitation of chrome extensions to keep background scripts running](https://github.com/flurrux/insta-loader/issues/24#issuecomment-1159406256).  
