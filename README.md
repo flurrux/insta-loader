@@ -11,9 +11,9 @@ so before you use this extension, you have to be willing to wait for a fix when 
 
 ## latest update
 
-February 23rd 2024
+August 20th 2024
 
-this release should fix missing download buttons in stories other than the main feed.  
+fixed missing download buttons on post pages.
 
 
 

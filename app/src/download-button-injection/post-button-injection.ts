@@ -204,34 +204,29 @@ async function findSinglePagePostInjectionPoint(postElement: HTMLElement): Promi
 	// there are two elements of tag 'polygon' on the page: the share and save buttons.
 	// we'll wait for any of such elements to show up:
 
-	const polygonElement = await waitForElementExistence(200, 10, postElement, "polygon");
-	if (!polygonElement) {
-		return left([
-			`trying to inject download buttons into post, but cannot find any child with tag 'polygon' that was expected to be in the following element: `,
-			postElement
-		])
+	const shareButtonPolygon = await waitForElementExistence(
+		500, 10,
+		postElement,
+		'[aria-label="Share"]'
+	);
+
+	if (!shareButtonPolygon){
+		return left(["did not find aria-label=\"Share\" are 10 attempts."]);
 	}
 
-	const polygonElements = Array.from(postElement.querySelectorAll("polygon"));
-	if (polygonElements.length !== 2){
-		console.warn(`expected to find exactly two svg-polygon elements on this page, but got a different number, namely ${polygonElements.length}`);
+	if (!shareButtonPolygon){
+		return left(["couldn't find an element with the aria-label=\"Share\""]);
 	}
 
-	if (polygonElements.length < 1){
-		return left("expected to find atleast one svg-polygon on this page that belonged to the share-button, but did not find any.");
-	}
-
-	// we'll assume that the first polygon element is a descendant of the share button
-
-	const firstPolygon = polygonElements[0];
 	const shareButtonOpt = findInAncestors(
-		(el) => el.matches("button"), firstPolygon
+		(el) => el.matches('[role="button"]'),
+		shareButtonPolygon as HTMLElement
 	);
 
 	if (isNone(shareButtonOpt)){
 		return left([
-			`found an svg-polygon element that was assumed to belong to the share-button. then we tried to find the share-button itself, but got no matches. here is the polygon element:`,
-			firstPolygon
+			`didn't find any parent with a role of button. here's the starting point:`,
+			shareButtonPolygon
 		])
 	}
 
