@@ -11,9 +11,9 @@ so before you use this extension, you have to be willing to wait for a fix when 
 
 ## latest update
 
-August 20th 2024
+September 15th 2024
 
-fixed missing download buttons on post pages.
+fixed download of highlight stories.
 
 
 

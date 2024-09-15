@@ -71,7 +71,6 @@ function queryPostElements(element: HTMLElement): HTMLElement[] {
 // story element by this function and even if it was, it wouldn't be able
 // to find the download button.
 function queryStoryElements(root: HTMLElement): HTMLElement[] {
-	console.log("queryStoryElements", root);
 	// the story element is a <section> with classes _s7gs2  _d9zua (11.04.2018)
 	// it has a header, and an explicit width
 	if (
