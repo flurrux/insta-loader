@@ -15,7 +15,7 @@ import { getCurrentPageType } from "../insta-navigation-observer";
 
 
 function findSavePostElement(postElement: HTMLElement): Option<HTMLElement> {
-	const saveButtonPolygon = postElement.querySelector('polygon[points="20 21 12 13.44 4 21 4 3 20 3 20 21"]');
+	const saveButtonPolygon = postElement.querySelector('[aria-label="Save"]') as HTMLElement | null;
 	if (!saveButtonPolygon){
 		// console.warn("trying to inject a download button, but could not find the save-button for the reference point.");
 		return none;
@@ -171,8 +171,11 @@ function injectDownloadButtonsIntoMainFeedPost(postElement: HTMLElement) {
 		return;
 	}
 
+
+	
 	const saveButton = saveButtonOpt.value;
-	const container = saveButton.parentElement?.parentElement;
+	const container = saveButton.parentElement?.parentElement as HTMLElement;
+
 	Object.assign(
 		container?.style,
 		{ display: "flex", alignItems: "center" }
@@ -204,33 +207,29 @@ async function findSinglePagePostInjectionPoint(postElement: HTMLElement): Promi
 	// there are two elements of tag 'polygon' on the page: the share and save buttons.
 	// we'll wait for any of such elements to show up:
 
+	const ariaLabelEqualsSharePost = 'aria-label*="Share"';
+
 	const shareButtonPolygon = await waitForElementExistence(
 		500, 10,
 		postElement,
-		'[aria-label="Share"]'
+		`[${ariaLabelEqualsSharePost}]`
 	);
 
 	if (!shareButtonPolygon){
-		return left(["did not find aria-label=\"Share\" are 10 attempts."]);
+		return left([
+			`did not find ${ariaLabelEqualsSharePost} after 10 attempts.`
+		]);
 	}
 
-	if (!shareButtonPolygon){
-		return left(["couldn't find an element with the aria-label=\"Share\""]);
-	}
-
-	const shareButtonOpt = findInAncestors(
-		(el) => el.matches('[role="button"]'),
+	const shareButtonEith = findShareButtonAncestor(
 		shareButtonPolygon as HTMLElement
 	);
 
-	if (isNone(shareButtonOpt)){
-		return left([
-			`didn't find any parent with a role of button. here's the starting point:`,
-			shareButtonPolygon
-		])
+	if (isLeft(shareButtonEith)){
+		return shareButtonEith;
 	}
+	const shareButton = shareButtonEith.right;
 
-	const shareButton = shareButtonOpt.value;
 	const likeCommentShareParent = shareButton.parentElement;
 	if (!likeCommentShareParent){
 		return left([
@@ -254,6 +253,32 @@ async function findSinglePagePostInjectionPoint(postElement: HTMLElement): Promi
 	);
 
 	return right({ likeCommentShareBar, saveButtonWrapper });
+}
+
+function findShareButtonAncestor(startPoint: HTMLElement): Either<unknown, HTMLElement> {
+
+	const shareButtonOpt1 = findInAncestors(
+		(el) => el.matches('[role="button"]'),
+		startPoint
+	);
+
+	if (isSome(shareButtonOpt1)){
+		return right(shareButtonOpt1.value);
+	}
+
+	const shareButtonOpt2 = findInAncestors(
+		(el) => el.matches('[type="button"]'),
+		startPoint
+	);
+
+	if (isSome(shareButtonOpt2)){
+		return right(shareButtonOpt2.value);
+	}
+
+	return left([
+		`didn't find any parent with a role of button. here's the starting point:`,
+		startPoint
+	])
 }
 
 async function injectDownloadButtonsIntoSinglePagePost(postElement: HTMLElement) {
