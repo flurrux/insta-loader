@@ -11,9 +11,10 @@ so before you use this extension, you have to be willing to wait for a fix when 
 
 ## latest update
 
-September 24th 2024
+October 26th 2024
 
-fixed download buttons on single post pages.
+fixed loading of extension.  
+it got broken in the recent chrome version 130.  
 
 
 
