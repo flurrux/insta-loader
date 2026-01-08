@@ -6,6 +6,6 @@ export default defineConfig({
 	plugins: [
 		chromeExtension({ 
 			manifest
-		})
+		}),
 	],
 });

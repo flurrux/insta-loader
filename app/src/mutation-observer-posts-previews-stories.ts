@@ -32,16 +32,33 @@ const instaChangeDetector = new EventTarget() as InstaChangeDetector;
 // ## queries
 
 function getParentElements(elements: HTMLElement[]): HTMLElement[] {
-	return elements
+	return (
+		elements
 		.map(el => el.parentElement)
-		.filter(el => el !== null) as HTMLElement[];
+		.filter(el => el !== null) as HTMLElement[]
+	);
 }
 
 const queryPreviewElements = flow(
-	(root: HTMLElement) => root.querySelectorAll('a[href*="/p/"]'),
-	Array.from,
+	(root: HTMLElement) => [
+		// all regular posts:
+		...querySelectorAllToArray(root, 'a[href*="/p/"]'),
+
+		// all reels:
+		...querySelectorAllToArray(root, 'a[href*="/reel/"]'),
+	],
 	getParentElements
 );
+
+function querySelectorAllToArray(
+	root: HTMLElement, query: string
+): HTMLElement[] {
+	return pipe(
+		root.querySelectorAll(query),
+		Array.from,
+		(arg) => arg as HTMLElement[]
+	);
+}
 
 function queryPostElements(element: HTMLElement): HTMLElement[] {
 	// console.log("queryPostElements", "pagetype", getCurrentPageType(), element);
@@ -115,13 +132,14 @@ const invokeListener = (name: string, element: HTMLElement) => {
 };
 
 class ObservedElementType {
+
 	getContainedElements: (parent: HTMLElement) => HTMLElement[];
 	elementType: InstaElementType;
 
 	constructor(
-		elementType: InstaElementType, 
-		queryElements: (parent: HTMLElement) => HTMLElement[]){
-		
+		elementType: InstaElementType,
+		queryElements: (parent: HTMLElement) => HTMLElement[]
+	){
 		this.getContainedElements = queryElements;
 		this.elementType = elementType;
 	}
@@ -163,7 +181,13 @@ function onNodeExistenceChanged(node: HTMLElement, added: boolean){
 		if (!observer.matchesType(elementTypes)) continue;
 
 		let contained = observer.getContainedElements(node);
-		let foreachFunc = added ? observer.onAdded.bind(observer) : observer.onRemoved.bind(observer);
+		
+		let foreachFunc = (
+			added
+			? observer.onAdded.bind(observer)
+			: observer.onRemoved.bind(observer)
+		);
+		
 		contained.forEach(foreachFunc);
 	}
 }

@@ -11,10 +11,11 @@ so before you use this extension, you have to be willing to wait for a fix when 
 
 ## latest update
 
-October 26th 2024
+January 8th 2026
 
-fixed loading of extension.  
-it got broken in the recent chrome version 130.  
+Downloading reels should be working now.  
+Right-click a reel-preview to open it in a new page.  
+The `/reel/` part of the url is automatically replaced by `/p/`, which allows the extension to download the video.
 
 
 

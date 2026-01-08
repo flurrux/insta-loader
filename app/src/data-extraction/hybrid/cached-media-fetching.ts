@@ -1,4 +1,4 @@
-import { isLeft, left, right } from "fp-ts/es6/Either";
+import { Either, isLeft, left, right } from "fp-ts/es6/Either";
 import { getCurrentPageType, isSinglePostType } from "../../insta-navigation-observer";
 import { findTypeOfPost } from "../directly-in-browser/general-post-info/post-type";
 import { findUsernameInPost } from "../directly-in-browser/general-post-info/post-username";
@@ -9,6 +9,8 @@ import { Option, isNone, none, some, toNullable } from "fp-ts/es6/Option";
 import { MediaFetchFn } from "../../media-fetch-fn";
 import { tryFindWebInfoInPageScripts } from "../directly-in-browser/shortcode-web-info/shortcode_media_script";
 import { getMediaInfoFromDataItem } from "../from-fetch-response/fetch-media-data";
+import { findMediaIdOnPostPage } from "../directly-in-browser/media-id";
+import { DataItem } from "../from-fetch-response/response-data-type";
 
 export const makeWebInfoMediaExtractor = (postElement: HTMLElement): MediaFetchFn => {
 
@@ -62,7 +64,7 @@ export const makeWebInfoMediaExtractor = (postElement: HTMLElement): MediaFetchF
 
 		// the current media is either a single video or a carousel video item
 		if (isNone(currentMediaInfo)) {
-			const webInfoEith = tryFindWebInfoInPageScripts();
+			const webInfoEith = await tryGetDataItemFromReelOrPage();
 			if (isLeft(webInfoEith)) {
 				return webInfoEith;
 			}
@@ -71,7 +73,6 @@ export const makeWebInfoMediaExtractor = (postElement: HTMLElement): MediaFetchF
 			if (isLeft(mediaInfoEith)){
 				return mediaInfoEith;
 			}
-
 			currentMediaInfo = some(mediaInfoEith.right);
 		}
 
@@ -98,3 +99,30 @@ export const makeWebInfoMediaExtractor = (postElement: HTMLElement): MediaFetchF
 		});
 	}
 };
+
+async function tryGetDataItemFromReelOrPage(): Promise<Either<any, DataItem>> {
+
+	// reel
+	if (location.pathname.match("\/.*\/reel\/")){
+		
+		// media id
+		const mediaIdEith = findMediaIdOnPostPage();
+		if (isLeft(mediaIdEith)){
+			return left("tried to download this reel but could not find the id of this post");
+		}
+		const mediaID = mediaIdEith.right;
+
+		const reelUrl = `https://www.instagram.com/api/v1/media/${mediaID}/info/`;
+		try {
+			const result = await (await fetch(reelUrl)).json();
+			return right(result.items[0]);
+		}
+		catch (e){
+			return left(e);
+		}
+	}
+	// non reel
+	else {
+		return tryFindWebInfoInPageScripts();
+	}
+}

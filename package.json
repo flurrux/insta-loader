@@ -4,7 +4,8 @@
 	"description": "download buttons for instagram",
 	"scripts": {
 		"test": "jest",
-		"build": "vite build"
+		"build": "vite build",
+		"postbuild": "node ./scripts/set-dynamic-url-false.cjs"
 	},
 	"author": "Christian Hoffmann <christianhoffmann@outlook.com>",
 	"dependencies": {
